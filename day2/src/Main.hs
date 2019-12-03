@@ -7,8 +7,7 @@ import Data.Vector.Unboxed as V
 data State = State { memory :: Vector Int
                    , ip :: Int } deriving Show
 
-data ProgramOutput = Success Int | Failure deriving (Show, Eq)
-data Result = Done ProgramOutput | Ongoing State deriving Show
+data Result = Done (Maybe Int) | Ongoing State deriving Show
 
 intcodeOp State { memory = m, ip = ip } fn = 
     let new = fn (m ! (m ! (ip + 1))) (m ! (m ! (ip + 2))) in
@@ -17,8 +16,8 @@ intcodeOp State { memory = m, ip = ip } fn =
 increment s@State { memory = memory, ip = ip } = case memory ! ip of
     1 -> Ongoing $ intcodeOp s (+)
     2 -> Ongoing $ intcodeOp s (*)
-    99 -> Done $ Success $ memory ! 0
-    _ -> Done Failure
+    99 -> Done $ Just $ memory ! 0
+    _ -> Done Nothing
 
 runProgram s = case increment s of
     Done p -> p
@@ -32,4 +31,4 @@ main = do
     let ints = V.fromList $ Prelude.map read $ splitOn "," input
     print $ run ints 12 2
     let allInputs = [(x, y) | x <- [0..100], y <- [0..100]]
-    print $ L.find (\(x, y) -> run ints x y == Success 19690720) allInputs
+    print $ L.find (\(x, y) -> run ints x y == Just 19690720) allInputs
