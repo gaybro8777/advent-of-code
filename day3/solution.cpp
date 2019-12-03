@@ -24,33 +24,18 @@ auto operator<(const Coord &a, const Coord &b) { return tie(a) < tie(b); }
 enum class Direction { u, d, l, r };
 struct Segment {
   int distance{};
-  Direction direction{};
+  Coord direction{};
 };
 
-auto charToDirection(char c) {
-  switch (token.front()) {
-  case 'U':
-    return Direction::u;
-  case 'D':
-    return Direction::d;
-  case 'L':
-    return Direction::l;
-  case 'R':
-    return Direction::r;
-  }
-
-  throw std::runtime_error{"no such direction"};
-}
-
-auto directionToVec(Direction d) -> Coord {
+auto charToVec(char d) -> Coord {
   switch (d) {
-  case Direction::u:
+  case 'U':
     return {0, 1};
-  case Direction::d:
+  case 'D':
     return {0, -1};
-  case Direction::l:
+  case 'L':
     return {-1, 0};
-  case Direction::r:
+  case 'R':
     return {1, 0};
   }
 
@@ -64,7 +49,7 @@ auto parsePath(const std::string &s) {
 
   while (std::getline(stream, token, ',')) {
     segments.push_back({std::stoi(std::string{token.data() + 1}),
-                        charToDirection(token.front())});
+                        charToVec(token.front())});
   }
 
   return segments;
@@ -76,10 +61,8 @@ auto convertToMap(const std::vector<Segment> &segments) {
   std::map<Coord, int> map;
 
   for (const auto &seg : segments) {
-    const auto inc = directionToVec(seg.direction);
-
     for (auto i = 0; i < seg.distance; ++i) {
-      coord += inc;
+      coord += seg.direction;
       step += 1;
       map.emplace(coord, step);
     }
