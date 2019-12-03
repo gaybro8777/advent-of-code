@@ -11,6 +11,7 @@
 struct Coord {
   int x{}, y{};
 };
+
 auto &operator+=(Coord &a, const Coord &b) {
   a.x += b.x;
   a.y += b.y;
@@ -26,28 +27,44 @@ struct Segment {
   Direction direction{};
 };
 
+auto charToDirection(char c) {
+  switch (token.front()) {
+  case 'U':
+    return Direction::u;
+  case 'D':
+    return Direction::d;
+  case 'L':
+    return Direction::l;
+  case 'R':
+    return Direction::r;
+  }
+
+  throw std::runtime_error{"no such direction"};
+}
+
+auto directionToVec(Direction d) -> Coord {
+  switch (d) {
+  case Direction::u:
+    return {0, 1};
+  case Direction::d:
+    return {0, -1};
+  case Direction::l:
+    return {-1, 0};
+  case Direction::r:
+    return {1, 0};
+  }
+
+  return {};
+}
+
 auto parsePath(const std::string &s) {
   std::istringstream stream{s};
   std::string token;
   std::vector<Segment> segments;
 
   while (std::getline(stream, token, ',')) {
-    const auto direction = [&] {
-      switch (token.front()) {
-      case 'U':
-        return Direction::u;
-      case 'D':
-        return Direction::d;
-      case 'L':
-        return Direction::l;
-      case 'R':
-        return Direction::r;
-      }
-
-      throw std::runtime_error{"no such direction"};
-    }();
-
-    segments.push_back({std::stoi(std::string{token.data() + 1}), direction});
+    segments.push_back({std::stoi(std::string{token.data() + 1}),
+                        charToDirection(token.front())});
   }
 
   return segments;
@@ -59,32 +76,7 @@ auto convertToMap(const std::vector<Segment> &segments) {
   std::map<Coord, int> map;
 
   for (const auto &seg : segments) {
-    const auto inc = [&]() -> Coord {
-      switch (seg.direction) {
-      case Direction::u:
-        return {
-            0,
-            1,
-        };
-      case Direction::d:
-        return {
-            0,
-            -1,
-        };
-      case Direction::l:
-        return {
-            -1,
-            0,
-        };
-      case Direction::r:
-        return {
-            1,
-            0,
-        };
-      }
-
-      return {};
-    }();
+    const auto inc = directionToVec(seg.direction);
 
     for (auto i = 0; i < seg.distance; ++i) {
       coord += inc;
@@ -177,3 +169,4 @@ auto main() -> int {
 
   return 0;
 }
+
