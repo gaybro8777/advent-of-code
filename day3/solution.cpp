@@ -21,7 +21,6 @@ auto &operator+=(Coord &a, const Coord &b) {
 auto tie(const Coord &c) { return std::tie(c.x, c.y); }
 auto operator<(const Coord &a, const Coord &b) { return tie(a) < tie(b); }
 
-enum class Direction { u, d, l, r };
 struct Segment {
   int distance{};
   Coord direction{};
@@ -48,8 +47,8 @@ auto parsePath(const std::string &s) {
   std::vector<Segment> segments;
 
   while (std::getline(stream, token, ',')) {
-    segments.push_back({std::stoi(std::string{token.data() + 1}),
-                        charToVec(token.front())});
+    segments.push_back(
+        {std::stoi(std::string{token.data() + 1}), charToVec(token.front())});
   }
 
   return segments;
@@ -152,4 +151,3 @@ auto main() -> int {
 
   return 0;
 }
-
