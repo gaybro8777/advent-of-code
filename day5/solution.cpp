@@ -54,7 +54,7 @@ void run(const It &mem, It &ip, Fn &&fn) {
   Instruction<It>{mem, ip}.template run<Params>(std::forward<Fn>(fn));
 }
 
-template <typename Range> inline Result run(Range &&range) noexcept {
+template <typename Range> inline auto run(Range &&range) noexcept {
   using std::begin;
   const auto mem = begin(range);
   auto ip = mem;
@@ -117,7 +117,7 @@ template <typename Range> inline Result run(Range &&range) noexcept {
   }
 }
 
-int main() {
+auto main() -> int {
   auto input = std::array{
       3,     225,  1,     225,   6,     6,     1100, 1,     238,   225,   104,
       0,     1102, 27,    28,    225,   1,     113,  14,    224,   1001,  224,
