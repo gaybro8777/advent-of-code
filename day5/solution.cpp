@@ -68,13 +68,22 @@ template <typename Range> inline Result run(Range &&range) noexcept {
       });
       break;
     case 2:
-      run<3>(mem, ip, [](auto &, auto &a, auto &b, auto &res) { res = a * b; return true;});
+      run<3>(mem, ip, [](auto &, auto &a, auto &b, auto &res) {
+        res = a * b;
+        return true;
+      });
       break;
     case 3:
-      run<1>(mem, ip, [](auto &, auto &res) { std::cin >> res; return true;});
+      run<1>(mem, ip, [](auto &, auto &res) {
+        std::cin >> res;
+        return true;
+      });
       break;
     case 4:
-      run<1>(mem, ip, [](auto &, auto &res) { std::cout << res << '\n'; return true;});
+      run<1>(mem, ip, [](auto &, auto &res) {
+        std::cout << res << '\n';
+        return true;
+      });
       break;
     case 5:
       run<2>(mem, ip, [&](auto &ip, auto &a, auto &b) {
