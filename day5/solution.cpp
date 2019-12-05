@@ -184,11 +184,6 @@ int main() {
 
   run(input);
 
-  for (auto i : input)
-    std::cout << i << ' ';
-
-  std::cout << '\n';
-
   return {};
 }
 
