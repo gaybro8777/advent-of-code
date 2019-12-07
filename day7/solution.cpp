@@ -24,7 +24,9 @@ class Interpreter final {
   }
 
   template <size_t Params> auto readParams() {
-    return readParams(std::make_index_sequence<Params>{});
+    auto result = readParams(std::make_index_sequence<Params>{});
+    ip += Params + 1;
+    return result;
   }
 
   template <size_t Params> static constexpr auto parseModes(int value) {
@@ -59,25 +61,21 @@ public:
       case 1: {
         auto params = readParams<3>();
         params[2].get() = params[0] + params[1];
-        ip += 4;
         break;
       }
       case 2: {
         auto params = readParams<3>();
         params[2].get() = params[0] * params[1];
-        ip += 4;
         break;
       }
       case 3: {
         auto params = readParams<1>();
         params[0].get() = inputs.front();
         inputs.pop_front();
-        ip += 2;
         break;
       }
       case 4: {
         auto params = readParams<1>();
-        ip += 2;
         return params[0].get();
       }
       case 5: {
@@ -93,13 +91,11 @@ public:
       case 7: {
         auto params = readParams<3>();
         params[2].get() = params[0] < params[1] ? 1 : 0;
-        ip += 4;
         break;
       }
       case 8: {
         auto params = readParams<3>();
         params[2].get() = params[0] == params[1] ? 1 : 0;
-        ip += 4;
         break;
       }
       case 99: [[fallthrough]];
