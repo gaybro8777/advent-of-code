@@ -10,23 +10,23 @@ class Interpreter final {
   enum class Mode { position, immediate, relative };
 
   auto updateProgramSize(size_t size) -> auto & {
-    program.resize(std::max(program.size(), size + 2), 0);
+    program.resize(std::max(program.size(), size + 1), 0);
     return program[size];
   }
 
   auto read(Mode mode, size_t offset) -> auto & {
     switch (mode) {
     case Mode::position:
-      return updateProgramSize(ip[offset + 1]);
+      return updateProgramSize(program[ip + offset + 1]);
     case Mode::immediate:
-      return ip[offset + 1];
+      return program[ip + offset + 1];
     case Mode::relative:
-      return updateProgramSize(relativeBase + ip[offset + 1]);
+      return updateProgramSize(relativeBase + program[ip + offset + 1]);
     }
   }
 
   template <size_t... Ind> auto readParams(std::index_sequence<Ind...>) {
-    const auto modes = parseModes<sizeof...(Ind)>(*ip);
+    const auto modes = parseModes<sizeof...(Ind)>(program[ip]);
     return std::array{std::ref(read(modes[Ind], Ind))...};
   }
 
@@ -48,15 +48,15 @@ class Interpreter final {
     return result;
   }
 
-  std::vector<int64_t> program;
-  std::vector<int64_t>::iterator ip;
+  std::deque<int64_t> program;
   std::deque<int64_t> inputs;
+  size_t ip{};
   int64_t relativeBase{};
 
 public:
   template <typename Prog, typename Inputs>
   Interpreter(Prog &&prog, Inputs &&ins)
-      : program(std::begin(prog), std::end(prog)), ip(std::begin(program)),
+      : program(std::begin(prog), std::end(prog)),
         inputs(std::begin(ins), std::end(ins)) {}
 
   template <typename Inputs>
@@ -65,7 +65,7 @@ public:
     inputs.insert(inputs.end(), begin(newInputs), end(newInputs));
 
     for (;;) {
-      switch (*ip % 100) {
+      switch (program[ip] % 100) {
       case 1: {
         auto params = readParams<3>();
         params[2].get() = params[0] + params[1];
@@ -89,13 +89,13 @@ public:
       case 5: {
         auto params = readParams<2>();
         updateProgramSize(params[1]);
-        ip = params[0] ? std::next(program.begin(), params[1]) : ip;
+        ip = params[0] ? params[1] : ip;
         break;
       }
       case 6: {
         auto params = readParams<2>();
         updateProgramSize(params[1]);
-        ip = !params[0] ? std::next(program.begin(), params[1]) : ip;
+        ip = !params[0] ? params[1] : ip;
         break;
       }
       case 7: {
