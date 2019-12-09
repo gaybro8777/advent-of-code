@@ -4,30 +4,50 @@ import Data.List as L
 import Data.Vector.Unboxed as V
 
 data State = State { memory :: Vector Int
-                   , ip :: Int } deriving Show
+                   , inputs :: Vector Int
+                   , ip :: Int 
+                   , relative :: Int } deriving Show
 
-data ProgramOutput = Success Int | Failure deriving Show
-data Result =  Done ProgramOutput | Ongoing State deriving Show
+data Mode = Position | Immediate | Relative deriving Show
 
-intcodeOp State { memory = m, ip = ip } fn = 
+data Result = Done (Maybe Int) | Ongoing State deriving Show
+
+toMode :: Int -> Mode
+toMode 0 = Position
+toMode 1 = Immediate
+toMode 2 = Relative
+
+findAddress :: State -> Mode -> Int -> Int
+findAddress state mode offset = let currentIp = (ip state) + offset in
+  case mode of
+    Position -> (memory state) ! currentIp
+    Immediate -> currentIp
+    Relative -> (relative state) + ((memory state) ! currentIp)
+
+parseModes :: Int -> Int -> [Mode]
+parseModes numModes instruction = case numModes of
+  0 -> []
+  _ -> [toMode $ instruction `mod` 10] L.++ parseModes (numModes - 1) (instruction `div` 10)
+
+incrementInstruction :: Int -> State -> (State, [Int])
+incrementInstruction args state = let instruction = (memory state) ! (ip state)
+                                      modes = parseModes args (instruction `div` 100)
+                                      addresses = L.map (\ (mode, offset) -> findAddress state mode offset) (L.zip modes [1..])
+                                      newIp = ip state + args + 1
+  in (state { ip = newIp }, addresses)
+
+intcodeOp State { memory = m, inputs = i, ip = ip, relative = r } fn = 
     let new = fn (m ! (m ! (ip + 1))) (m ! (m ! (ip + 2))) in
-    State { memory = m // [(m ! (ip + 3), new)], ip = ip + 4 }
+    State { memory = m // [(m ! (ip + 3), new)], inputs = i, ip = ip + 4, relative = r}
 
 increment s@State { memory = memory, ip = ip } = case memory ! ip of
     1 -> Ongoing $ intcodeOp s (+)
     2 -> Ongoing $ intcodeOp s (*)
-    99 -> Done $ Success $ memory ! 0
-    _ -> Done Failure
+    99 -> Done $ return $ memory ! 0
+    _ -> Done Nothing
 
 runProgram s = case increment s of
     Done p -> p
     Ongoing s -> runProgram s
 
-run vec noun verb = let modified = vec // [(1, noun), (2, verb)] in
-    runProgram State { memory = modified, ip = 0}
-
-main = do
-    input <- getContents
-    let ints = V.fromList $ Prelude.map read $ L.Split.splitOn "," input
-    print $ run ints 12 2
-    print $ L.find (\(x, y) -> run ints x y == 19690720) [(x, y) | x <- [0..100], y <- [0..100]]
+main = print "yo"
