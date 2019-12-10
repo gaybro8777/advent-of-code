@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+const auto pi = std::acos(-1.0);
+
 struct Coord final {
   int64_t x{}, y{};
 };
@@ -76,29 +78,16 @@ template <typename T> auto gcd(T a, T b) {
   return a;
 }
 
-auto computeIncrement(Coord c) -> Coord {
-  const auto x0 = c.x == 0;
-  const auto y0 = c.y == 0;
-
-  if (x0 && y0)
-    return {};
-  if (x0)
-    return {0, c.y < 0 ? -1 : 1};
-  if (y0)
-    return {c.x < 0 ? -1 : 1, 0};
-
-  const auto common = gcd(std::abs(c.x), std::abs(c.y));
-  return {c.x / common, c.y / common};
+auto angle(Coord t) {
+  return std::fmod(2 * pi + std::atan2(-t.x, t.y), 2 * pi);
 }
-
-auto angle(Coord t) { return std::atan2(t.x, t.y); }
 
 auto relativeMap(const std::set<Coord> &coords, Coord target) {
   std::map<double, std::vector<Coord>> map;
 
   for (auto c : coords) {
     if (c != target) {
-      const auto d = c - target;
+      const auto d = target - c;
       map[angle(d)].emplace_back(d);
     }
   }
@@ -112,12 +101,8 @@ auto relativeMap(const std::set<Coord> &coords, Coord target) {
 }
 
 auto find200th(std::map<double, std::vector<Coord>> map, Coord target) {
-  std::cout << map.size() << '\n';
-
   auto it = map.begin();
-  for (auto i = 0; i != 200; ++i) {
-    std::cout << target - it->second.front() << '\n';
-
+  for (auto i = 0; i != 199; ++i) {
     it->second.erase(it->second.begin());
 
     if (it->second.empty())
@@ -129,40 +114,44 @@ auto find200th(std::map<double, std::vector<Coord>> map, Coord target) {
       it = map.begin();
   }
 
-  std::cout << target + it->second.front() << '\n';
+  return target - it->second.front();
 }
 
 auto countVisible(const std::set<Coord> &coords, Coord target) {
-  std::set<Coord> uniqueIncrements;
+  std::set<double> uniqueIncrements;
   for (auto other : coords)
     if (other != target)
-      uniqueIncrements.emplace(computeIncrement(target - other));
+      uniqueIncrements.emplace(angle(target - other));
   return uniqueIncrements.size();
 }
 
-constexpr char input[] = R"(.#..##.###...#######
-##.############..##.
-.#.######.########.#
-.###.#######.####.#.
-#####.##.#.##.###.##
-..#####..#.#########
-####################
-#.####....###.#.#.##
-##.#################
-#####.##.###..####..
-..######..##.#######
-####.##.####...##..#
-.#####..#.######.###
-##...#.##########...
-#.##########.#######
-.####.#.###.###.#.##
-....##.##.###..#####
-.#.#.###########.###
-#.#.#.#####.####.###
-###.##.####.##.#..##)";
+constexpr char input[] = R"(#..#.#.#.######..#.#...##
+##.#..#.#..##.#..######.#
+.#.##.#..##..#.#.####.#..
+.#..##.#.#..#.#...#...#.#
+#...###.##.##..##...#..#.
+##..#.#.#.###...#.##..#.#
+###.###.#.##.##....#####.
+.#####.#.#...#..#####..#.
+.#.##...#.#...#####.##...
+######.#..##.#..#.#.#....
+###.##.#######....##.#..#
+.####.##..#.##.#.#.##...#
+##...##.######..##..#.###
+...###...#..#...#.###..#.
+.#####...##..#..#####.###
+.#####..#.#######.###.##.
+#...###.####.##.##.#.##.#
+.#.#.#.#.#.##.#..#.#..###
+##.#.####.###....###..##.
+#..##.#....#..#..#.#..#.#
+##..#..#...#..##..####..#
+....#.....##..#.##.#...##
+.##..#.#..##..##.#..##..#
+.##..#####....#####.#.#.#
+#..#..#..##...#..#.#.#.##)";
 
 auto main() -> int {
-  std::cout << std::atan2(0, 1) << '\n';
   const auto coords = parseCoords(input);
   const auto [mostVisible, pos] =
       std::accumulate(coords.cbegin(), coords.cend(),
@@ -173,6 +162,6 @@ auto main() -> int {
                         return std::tuple{visible, c};
                       });
   std::cout << mostVisible << " (" << pos.x << ", " << pos.y << ")\n";
-  find200th(relativeMap(coords, pos), pos);
+  std::cout << find200th(relativeMap(coords, pos), pos) << '\n';
 }
 
