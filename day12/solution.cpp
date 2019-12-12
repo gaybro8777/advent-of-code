@@ -8,7 +8,6 @@ struct Vec final {
 };
 
 constexpr auto tie(const Vec &a) { return std::tie(a.x, a.y, a.z); }
-
 constexpr auto operator==(const Vec &a, const Vec &b) {
   return tie(a) == tie(b);
 }
@@ -33,10 +32,8 @@ constexpr auto operator+(const Vec &a, const Vec &b) {
 }
 
 constexpr auto gravity(int a, int b) {
-  if (a < b)
-    return 1;
-  if (b < a)
-    return -1;
+  if (a < b) return 1;
+  if (b < a) return -1;
   return 0;
 }
 
@@ -49,12 +46,33 @@ constexpr auto gravity(const Vec &a, const Vec &b) {
   return zipWith(a, b, [](auto i, auto j) { return gravity(i, j); });
 }
 
-struct Moon final {
-  Vec pos{}, vel{};
+struct Dim final {
+  int pos{}, vel{};
 };
 
-constexpr auto tie(const Moon &m) { return std::tie(m.pos, m.vel); }
+std::ostream &operator<<(std::ostream &os, Dim d) {
+  return os << '(' << d.pos << ", " << d.vel << ')';
+}
 
+constexpr auto tie(const Dim &d) { return std::tie(d.pos, d.vel); }
+constexpr auto operator==(const Dim &a, const Dim &b) {
+  return tie(a) == tie(b);
+}
+constexpr auto operator!=(const Dim &a, const Dim &b) {
+  return tie(a) != tie(b);
+}
+
+struct Moon final {
+  constexpr explicit Moon(Vec p) : x{p.x}, y{p.y}, z{p.z} {}
+  constexpr Moon(Dim x, Dim y, Dim z) : x{x}, y{y}, z{z} {}
+
+  constexpr auto pos() const { return Vec{x.pos, y.pos, z.pos}; }
+  constexpr auto vel() const { return Vec{x.vel, y.vel, z.vel}; }
+
+  Dim x, y, z;
+};
+
+constexpr auto tie(const Moon &m) { return std::tie(m.x, m.y, m.z); }
 constexpr auto operator==(const Moon &a, const Moon &b) {
   return tie(a) == tie(b);
 }
@@ -63,13 +81,13 @@ constexpr auto operator!=(const Moon &a, const Moon &b) {
 }
 
 template <size_t Num>
-constexpr auto computeGravities(const std::array<Moon, Num> &m) {
-  std::array<Vec, Num> result;
+constexpr auto computeGravities(const std::array<int, Num> &m) {
+  std::array<int, Num> result{{}};
 
   for (auto i = 0; i != Num; ++i) {
     for (auto j = 0; j != Num; ++j) {
       if (i != j) {
-        result[i] += gravity(m[i].pos, m[j].pos);
+        result[i] += gravity(m[i], m[j]);
       }
     }
   }
@@ -77,13 +95,31 @@ constexpr auto computeGravities(const std::array<Moon, Num> &m) {
   return result;
 }
 
-template <size_t Num> constexpr auto step(std::array<Moon, Num> &m) {
-  const auto gravities = computeGravities(m);
+template <typename T, size_t... Ix, typename Fn>
+constexpr auto transform(std::index_sequence<Ix...>,
+                         const std::array<T, sizeof...(Ix)> &a, Fn &&fn) {
+  return std::array{fn(a[Ix])...};
+}
+
+template <typename T, size_t Num, typename Fn>
+constexpr auto transform(const std::array<T, Num> &a, Fn &&fn) {
+  return transform(std::make_index_sequence<Num>{}, a, std::forward<Fn>(fn));
+}
+
+template <size_t Num>
+constexpr auto step(std::array<Dim, Num> &m) {
+  const auto gravities =
+      computeGravities(transform(m, [](auto d) { return d.pos; }));
 
   for (auto i = 0; i != Num; ++i) {
     m[i].vel += gravities[i];
     m[i].pos += m[i].vel;
   }
+}
+
+template <size_t Num>
+constexpr auto step(std::array<Dim, Num> &m, size_t steps) {
+  for (size_t j = 0; j != steps; ++j) step(m);
 }
 
 auto abs(const Vec &v) {
@@ -93,34 +129,59 @@ auto abs(const Vec &v) {
 constexpr auto sumComponents(const Vec &v) { return v.x + v.y + v.z; }
 
 auto computeEnergy(const Moon &m) {
-  return sumComponents(abs(m.pos)) * sumComponents(abs(m.vel));
+  return sumComponents(abs(m.pos())) * sumComponents(abs(m.vel()));
+}
+
+template <size_t I, typename Fn, typename... Ts>
+constexpr auto call(Fn &&fn, Ts &&... ts) {
+  return fn(ts[I]...);
+}
+
+template <typename Fn, size_t... Ix, typename... Ts>
+constexpr auto zipArrays(std::index_sequence<Ix...>, Fn &&fn, Ts &&... ts) {
+  return std::array{call<Ix>(fn, ts...)...};
+}
+
+template <typename Fn, typename T, size_t Num, typename... Ts>
+constexpr auto zipArrays(Fn &&fn, const std::array<T, Num> &a, Ts &&... ts) {
+  return zipArrays(std::make_index_sequence<Num>{}, std::forward<Fn>(fn), a,
+                   std::forward<Ts>(ts)...);
 }
 
 template <size_t Num>
-constexpr auto step(std::array<Moon, Num> &m, size_t steps) {
-  for (size_t j = 0; j != steps; ++j)
-    step(m);
-}
+auto energyAfter1000Steps(const std::array<Moon, Num> &i) {
+  auto x = transform(i, [](auto m) { return m.x; });
+  auto y = transform(i, [](auto m) { return m.y; });
+  auto z = transform(i, [](auto m) { return m.z; });
 
-template <size_t Num> auto energyAfter1000Steps(std::array<Moon, Num> i) {
-  step(i, 1000);
+  constexpr auto steps = 1000;
 
-  return std::accumulate(i.cbegin(), i.cend(), 0, [](auto acc, const auto &m) {
-    return acc + computeEnergy(m);
-  });
+  step(x, steps);
+  step(y, steps);
+  step(z, steps);
+
+  const auto moons = zipArrays(
+      [](auto x, auto y, auto z) {
+        return Moon{x, y, z};
+      },
+      x, y, z);
+
+  return std::accumulate(
+      moons.cbegin(), moons.cend(), 0,
+      [](auto acc, const auto &m) { return acc + computeEnergy(m); });
 }
 
 constexpr auto test = std::array{Moon{Vec{-8, -10, 0}}, Moon{Vec{5, 5, 10}},
                                  Moon{Vec{2, -7, 3}}, Moon{Vec{9, -8, -3}}};
 
-constexpr auto input = std::array{Moon{Vec{2, 2, -9}}, Moon{Vec{-1, -9, -4}},
+constexpr auto input = std::array{Moon{Vec{1, 2, -9}}, Moon{Vec{-1, -9, -4}},
                                   Moon{Vec{17, 6, 8}}, Moon{Vec{12, 4, 2}}};
 
-auto main() -> int {
-  std::cout << energyAfter1000Steps(input) << '\n';
+template <size_t Num>
+constexpr auto findLoopLength(const std::array<Dim, Num> &dim) {
+  auto hare = dim;
+  auto tortoise = dim;
 
-  auto hare = input;
-  auto tortoise = input;
   size_t out = 0;
 
   do {
@@ -128,9 +189,21 @@ auto main() -> int {
     step(hare);
     step(tortoise);
     out += 1;
-
-    if (out % 1000000 == 0) std::cout << out << '\n';
   } while (hare != tortoise);
 
-  std::cout << out << '\n';
+  return out;
 }
+
+auto main() -> int {
+  std::cout << energyAfter1000Steps(input) << '\n';
+
+  const auto xSteps =
+      findLoopLength(transform(input, [](auto m) { return m.x; }));
+  const auto ySteps =
+      findLoopLength(transform(input, [](auto m) { return m.y; }));
+  const auto zSteps =
+      findLoopLength(transform(input, [](auto m) { return m.z; }));
+
+  std::cout << std::lcm(std::lcm(xSteps, ySteps), zSteps) << '\n';
+}
+
