@@ -6,6 +6,7 @@
 #include <map>
 #include <numeric>
 #include <optional>
+#include <variant>
 #include <vector>
 
 class Interpreter final {
@@ -79,6 +80,9 @@ public:
         break;
       }
       case 3: {
+        if (inputs.empty())
+          return {};
+
         auto params = readParams<1>();
         params[0].get() = inputs.front();
         inputs.pop_front();
@@ -128,18 +132,29 @@ enum class Tile { empty, wall, block, paddle, ball };
 
 constexpr auto toTile(int64_t i) { return Tile(i); }
 
-struct Output final {
+struct ScreenUpdate final {
   int64_t x{}, y{};
   Tile tile{};
 };
 
-auto getNextTile(Interpreter &i) -> std::optional<Output> {
-  const auto x = i.runUntilOutput();
+struct Score final {
+  int64_t value{};
+};
+
+using Output = std::variant<std::monostate, ScreenUpdate, Score>;
+
+auto getNextOutput(Interpreter &i, const std::vector<int64_t> &ins = {})
+    -> Output {
+  const auto x = i.runUntilOutput(ins);
   const auto y = i.runUntilOutput();
   const auto t = i.runUntilOutput();
 
-  if (x && y && t)
-    return Output{*x, *y, toTile(*t)};
+  if (x && y && t) {
+    if (*x == -1 && *y == 0)
+      return Score{*t};
+
+    return ScreenUpdate{*x, *y, toTile(*t)};
+  }
 
   return {};
 }
@@ -148,7 +163,7 @@ struct Coord final {
   int64_t x{}, y{};
 };
 
-constexpr auto tie(const Coord &c) { return std::tie(c.x, c.y); }
+constexpr auto tie(const Coord &c) { return std::tie(c.y, c.x); }
 constexpr auto operator<(const Coord &a, const Coord &b) {
   return tie(a) < tie(b);
 }
@@ -390,22 +405,120 @@ constexpr auto input = std::array{
     83,    12,    27,    64,    91,    14,    65,     52,    8,     49,
     48,    437598};
 
+template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts> overloaded(Ts...)->overloaded<Ts...>;
+
+auto getScreenUpdate(const Output &output) {
+  return std::visit(
+      overloaded{
+          [](const ScreenUpdate &su) -> std::optional<ScreenUpdate> {
+            return su;
+          },
+          [](const auto &) -> std::optional<ScreenUpdate> { return {}; }},
+      output);
+}
+
 auto countBlocks() {
   auto comp = Interpreter{input};
   std::map<Coord, Tile> screen;
 
-  while (auto out = getNextTile(comp))
+  while (auto out = getScreenUpdate(getNextOutput(comp)))
     screen.emplace(Coord{out->x, out->y}, out->tile);
 
   return std::count_if(screen.cbegin(), screen.cend(),
                        [](const auto &it) { return it.second == Tile::block; });
 }
 
+char toChar(Tile t) {
+  switch (t) {
+  case Tile::empty:
+    return ' ';
+  case Tile::wall:
+    return '|';
+  case Tile::block:
+    return 'X';
+  case Tile::paddle:
+    return '-';
+  case Tile::ball:
+    return 'O';
+  }
+
+  return ' ';
+}
+
+auto getCharAt(const std::map<Coord, Tile> &s, Coord c) {
+  if (const auto it = s.find(c); it != s.cend())
+    return toChar(it->second);
+
+  return ' ';
+}
+
+auto drawScreen(const std::map<Coord, Tile> &s) {
+  constexpr auto width = 37;
+  constexpr auto height = 23;
+
+  for (auto y = 0; y != height; ++y) {
+    for (auto x = 0; x != width; ++x)
+      std::cout << getCharAt(s, {x, y});
+    std::cout << '\n';
+  }
+
+  std::cout << '\n';
+}
+
 auto play() {
   auto prog = input;
   prog[0] = 2;
   auto comp = Interpreter{prog};
+
+  std::map<Coord, Tile> screen;
+  int64_t score{};
+  int64_t paddlePos{};
+  int64_t ballPos{};
+  std::vector<int64_t> nextInput;
+
+  while (std::visit(
+      overloaded{[&](const ScreenUpdate &su) {
+                   screen.insert_or_assign(Coord{su.x, su.y}, su.tile);
+
+                   auto ballPosChanged = false;
+
+                   switch (su.tile) {
+                   case Tile::paddle:
+                     paddlePos = su.x;
+                     break;
+                   case Tile::ball:
+                     ballPosChanged = ballPos != su.x;
+                     ballPos = su.x;
+                     break;
+                   default:
+                     break;
+                   }
+
+                   nextInput = !ballPosChanged ? std::vector<int64_t>{}
+                                               : std::vector<int64_t>{[&] {
+                                                   if (paddlePos < ballPos)
+                                                     return 1;
+                                                   if (ballPos < paddlePos)
+                                                     return -1;
+                                                   return 0;
+                                                 }()};
+
+                   return true;
+                 },
+                 [&](const Score &s) {
+                   score = s.value;
+                   return true;
+                 },
+                 [](const std::monostate &) { return false; }},
+      getNextOutput(comp, nextInput)))
+    ;
+
+  return score;
 }
 
-auto main() -> int { std::cout << countBlocks() << '\n'; }
+auto main() -> int {
+  std::cout << countBlocks() << '\n';
+  std::cout << play() << '\n';
+}
 
