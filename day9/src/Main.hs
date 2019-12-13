@@ -7,7 +7,7 @@ import Debug.Trace
 
 data State = State { memory :: Vector Int64
                    , inputs :: Vector Int64
-                   , ip :: Int64 
+                   , ip :: Int64
                    , relative :: Int64 } deriving Show
 
 data Mode = Position | Immediate | Relative deriving Show
@@ -20,8 +20,8 @@ toMode 1 = Immediate
 toMode 2 = Relative
 
 findAddress :: State -> Mode -> Int64 -> Int64
-findAddress State { memory = m, relative = r, ip = ip } mode offset = 
-  let currentIp = ip + offset 
+findAddress State { memory = m, relative = r, ip = ip } mode offset =
+  let currentIp = ip + offset
   in case mode of
     Position -> m ! fromIntegral currentIp
     Immediate -> currentIp
@@ -41,8 +41,8 @@ incrementInstruction args s@State { memory = m, ip = ip } =
   in (s { ip = newIp }, fromList addresses)
 
 vecSet :: Int64 -> Int64 -> Vector Int64 -> Vector Int64
-vecSet ind value vec = 
-  let extra = V.replicate (max 0 1 + (fromIntegral ind - V.length vec)) 0 
+vecSet ind value vec =
+  let extra = V.replicate (max 0 1 + (fromIntegral ind - V.length vec)) 0
   in (vec V.++ extra) // [(fromIntegral ind, value)]
 
 add :: State -> State
@@ -98,7 +98,7 @@ ret s@State { memory = m } =
   in m ! fromIntegral (params ! 0)
 
 increment :: State -> Result
-increment s@State { memory = m, ip = ip } = 
+increment s@State { memory = m, ip = ip } =
   case (m ! fromIntegral ip) `mod` 100 of
     1 -> Ongoing $ add s
     2 -> Ongoing $ mul s

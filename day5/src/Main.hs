@@ -25,15 +25,13 @@ findAddress State { memory = m, ip = ip } mode offset =
     Position -> m ! fromIntegral currentIp
     Immediate -> currentIp
 
-parseModes :: Int64 -> Int64 -> [Mode]
-parseModes numModes instruction = case numModes of
-  0 -> []
-  _ -> [toMode $ instruction `mod` 10] L.++ parseModes (numModes - 1) (instruction `div` 10)
+parseModes :: (Int64, Int64) -> [Mode]
+parseModes = L.unfoldr (\(n, i) -> if n == 0 then Nothing else Just (toMode $ i `mod` 10, (n - 1, i `div` 10))) 
 
 incrementInstruction :: Int64 -> State -> (State, Vector Int64)
 incrementInstruction args s@State { memory = m, ip = ip } =
   let instruction = m ! fromIntegral ip
-      modes = parseModes args (instruction `div` 100)
+      modes = parseModes (args, instruction `div` 100)
       addresses = L.zipWith (findAddress s) modes [1..]
       newIp = ip + args + 1
   in (s { ip = newIp }, fromList addresses)
