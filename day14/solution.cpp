@@ -1,8 +1,8 @@
 #include <cmath>
 #include <deque>
 #include <iostream>
-#include <map>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 constexpr char input[] = R"(12 VJWQR, 1 QTBC => 6 BGXJV
@@ -102,7 +102,7 @@ auto parseLine(std::string line) {
 }
 
 auto buildTree(const std::string &input) {
-  std::map<std::string, Requirements> result;
+  std::unordered_map<std::string, Requirements> result;
 
   std::stringstream ss{input};
   std::string line;
@@ -121,9 +121,9 @@ auto buildTree(const std::string &input) {
   return result;
 }
 
-auto findOreRequired(const std::map<std::string, Requirements> &tree,
+auto findOreRequired(const std::unordered_map<std::string, Requirements> &tree,
                      WeightedChemical wc,
-                     std::map<std::string, int64_t> &surplus) {
+                     std::unordered_map<std::string, int64_t> &surplus) {
   std::deque<WeightedChemical> stillRequired{wc};
   int64_t ore{};
 
@@ -161,16 +161,16 @@ auto findOreRequired(const std::map<std::string, Requirements> &tree,
   return ore;
 }
 
-auto findOreRequired(const std::map<std::string, Requirements> &tree,
+auto findOreRequired(const std::unordered_map<std::string, Requirements> &tree,
                      WeightedChemical wc) {
-  std::map<std::string, int64_t> surplus;
+  std::unordered_map<std::string, int64_t> surplus;
   return findOreRequired(tree, wc, surplus);
 }
 
-auto findMaxFuel(const std::map<std::string, Requirements> &tree) {
-  int64_t fuelMade = 1'184'000; // found by guesswork, not ideal
+auto findMaxFuel(const std::unordered_map<std::string, Requirements> &tree) {
+  int64_t fuelMade = 1'150'000; // found by guesswork, not ideal
   int64_t oreUsed = findOreRequired(tree, {"FUEL", fuelMade});
-  std::map<std::string, int64_t> surplus;
+  std::unordered_map<std::string, int64_t> surplus;
 
   for (; oreUsed < 1'000'000'000'000; fuelMade += 1) {
     oreUsed += findOreRequired(tree, {"FUEL", 1}, surplus);
