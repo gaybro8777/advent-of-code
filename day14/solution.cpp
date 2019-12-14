@@ -1,5 +1,4 @@
 #include <cmath>
-#include <deque>
 #include <iostream>
 #include <sstream>
 #include <unordered_map>
@@ -124,12 +123,12 @@ auto buildTree(const std::string &input) {
 auto findOreRequired(const std::unordered_map<std::string, Requirements> &tree,
                      WeightedChemical wc,
                      std::unordered_map<std::string, int64_t> &surplus) {
-  std::deque<WeightedChemical> stillRequired{wc};
+  std::vector<WeightedChemical> stillRequired{wc};
   int64_t ore{};
 
   while (!stillRequired.empty()) {
-    auto lookup = stillRequired.front();
-    stillRequired.pop_front();
+    auto lookup = stillRequired.back();
+    stillRequired.pop_back();
 
     if (const auto it = surplus.find(lookup.chemical); it != surplus.end()) {
       const auto amountToTake = std::min(lookup.weight, it->second);
