@@ -1,3 +1,5 @@
+#include <catch2/catch.hpp>
+
 #include <iostream>
 #include <map>
 #include <numeric>
@@ -7,6 +9,8 @@
 #include <string_view>
 #include <tuple>
 #include <vector>
+
+namespace {
 
 struct Coord {
   int x{}, y{};
@@ -97,8 +101,9 @@ auto minSteps(const std::map<Coord, int> &a, const std::map<Coord, int> &b) {
     return aElem.second + bElem.second;
   });
 }
+} // namespace
 
-auto main() -> int {
+TEST_CASE("day3") {
   const auto a = convertToMap(parsePath(
       "R1003,D430,L108,D570,R459,U7,L68,D232,L130,U93,R238,U951,L821,U723,L370,"
       "U873,L680,U749,R110,U17,R185,U484,R550,U356,L212,U350,L239,D208,R666,"
@@ -146,8 +151,6 @@ auto main() -> int {
       "D384,L581,U36,L336,U849,L944,U450,R138,D186,L613,U805,R32,U763,R210,"
       "U556,R125,D499,R729"));
 
-  std::cout << minManhattan(a, b).value_or(0) << '\n';
-  std::cout << minSteps(a, b).value_or(0) << '\n';
-
-  return 0;
+  REQUIRE(minManhattan(a, b) == 1674);
+  REQUIRE(minSteps(a, b) == 14012);
 }

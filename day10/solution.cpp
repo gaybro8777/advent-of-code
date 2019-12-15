@@ -1,3 +1,5 @@
+#include <catch2/catch.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -8,6 +10,8 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+
+namespace {
 
 const auto pi = std::acos(-1.0);
 
@@ -151,7 +155,9 @@ constexpr char input[] = R"(#..#.#.#.######..#.#...##
 .##..#####....#####.#.#.#
 #..#..#..##...#..#.#.#.##)";
 
-auto main() -> int {
+} // namespace
+
+TEST_CASE("day10") {
   const auto coords = parseCoords(input);
   const auto [mostVisible, pos] =
       std::accumulate(coords.cbegin(), coords.cend(),
@@ -161,7 +167,7 @@ auto main() -> int {
                           return acc;
                         return std::tuple{visible, c};
                       });
-  std::cout << mostVisible << " (" << pos.x << ", " << pos.y << ")\n";
-  std::cout << find200th(relativeMap(coords, pos), pos) << '\n';
+  REQUIRE(mostVisible == 253);
+  REQUIRE(find200th(relativeMap(coords, pos), pos) == Coord{8, 15});
 }
 

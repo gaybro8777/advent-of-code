@@ -1,9 +1,14 @@
+#include <catch2/catch.hpp>
+
 #include <algorithm>
 #include <iostream>
 #include <numeric>
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <vector>
+
+namespace {
 
 struct Pair final {
   std::string from, to;
@@ -1914,9 +1919,10 @@ TJ4)ZVD
 2V1)BGZ
 )";
 
-auto main() -> int {
+} // namespace
+
+TEST_CASE("day6") {
   const auto pairs = parsePairs(input);
-  std::cout << partOne(buildDownMap(pairs), "COM", 1) << '\n';
-  std::cout << partTwo(buildUpMap(pairs), "YOU", "SAN") << '\n';
-  return 0;
+  REQUIRE(partOne(buildDownMap(pairs), "COM", 1) == 312697);
+  REQUIRE(partTwo(buildUpMap(pairs), "YOU", "SAN") == 466);
 }

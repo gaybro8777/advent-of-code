@@ -1,0 +1,27 @@
+cmake_minimum_required(VERSION 3.15)
+
+set(HUNTER_PACKAGES Catch)
+include(FetchContent)
+FetchContent_Declare(SetupHunter GIT_REPOSITORY https://github.com/cpp-pm/gate)
+FetchContent_MakeAvailable(SetupHunter)
+
+project(AOC19 VERSION 0.0.1)
+
+find_package(Catch2 CONFIG REQUIRED)
+
+add_subdirectory(common)
+
+add_subdirectory(day2)
+add_subdirectory(day3)
+add_subdirectory(day4)
+add_subdirectory(day5)
+add_subdirectory(day6)
+add_subdirectory(day7)
+add_subdirectory(day8)
+add_subdirectory(day9)
+add_subdirectory(day10)
+add_subdirectory(day11)
+add_subdirectory(day12)
+add_subdirectory(day13)
+add_subdirectory(day14)
+add_subdirectory(day15)

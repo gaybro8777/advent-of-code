@@ -1,8 +1,12 @@
+#include <catch2/catch.hpp>
+
 #include <cmath>
 #include <iostream>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
+
+namespace {
 
 constexpr char input[] = R"(12 VJWQR, 1 QTBC => 6 BGXJV
 12 BGTMN, 2 DRKQR => 2 TVSF
@@ -167,7 +171,7 @@ auto findOreRequired(const std::unordered_map<std::string, Requirements> &tree,
 }
 
 auto findMaxFuel(const std::unordered_map<std::string, Requirements> &tree) {
-  int64_t fuelMade = 1'150'000; // found by guesswork, not ideal
+  int64_t fuelMade = 1'180'000; // found by guesswork, not ideal
   int64_t oreUsed = findOreRequired(tree, {"FUEL", fuelMade});
   std::unordered_map<std::string, int64_t> surplus;
 
@@ -178,10 +182,10 @@ auto findMaxFuel(const std::unordered_map<std::string, Requirements> &tree) {
   return fuelMade - 1;
 }
 
-auto main() -> int {
-  const auto tree = buildTree(input);
-  std::cout << findOreRequired(tree, {"FUEL", 1}) << '\n';
-  std::cout << findMaxFuel(tree) << '\n';
+} // namespace
 
-  return 0;
+TEST_CASE("day14") {
+  const auto tree = buildTree(input);
+  REQUIRE(findOreRequired(tree, {"FUEL", 1}) == 1590844);
+  REQUIRE(findMaxFuel(tree) == 1184209);
 }

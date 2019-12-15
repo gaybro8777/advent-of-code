@@ -1,0 +1,2 @@
+add_library(day9 OBJECT solution.cpp)
+target_link_libraries(day9 utils Catch2::Catch2)

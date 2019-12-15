@@ -1,7 +1,11 @@
+#include <catch2/catch.hpp>
+
 #include <array>
 #include <iostream>
 #include <numeric>
 #include <tuple>
+
+namespace {
 
 struct Vec final {
   int x{}, y{}, z{};
@@ -194,8 +198,10 @@ constexpr auto findLoopLength(const std::array<Dim, Num> &dim) {
   return out;
 }
 
-auto main() -> int {
-  std::cout << energyAfter1000Steps(input) << '\n';
+} // namespace
+
+TEST_CASE("day12") {
+  REQUIRE(energyAfter1000Steps(input) == 7471);
 
   const auto xSteps =
       findLoopLength(transform(input, [](auto m) { return m.x; }));
@@ -204,6 +210,5 @@ auto main() -> int {
   const auto zSteps =
       findLoopLength(transform(input, [](auto m) { return m.z; }));
 
-  std::cout << std::lcm(std::lcm(xSteps, ySteps), zSteps) << '\n';
+  REQUIRE(std::lcm(std::lcm(xSteps, ySteps), zSteps) == 376243355967784);
 }
-

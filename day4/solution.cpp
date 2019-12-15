@@ -1,8 +1,12 @@
+#include <catch2/catch.hpp>
+
 #include <algorithm>
 #include <array>
 #include <charconv>
 #include <functional>
 #include <iostream>
+
+namespace {
 
 template <typename Fn> bool isValid(int pwd, Fn &&extraCheck) {
   std::array<char, 6> chars;
@@ -19,8 +23,9 @@ template <typename Fn> bool isValid(int pwd, Fn &&extraCheck) {
     return extraCheck(std::count(chars.cbegin(), chars.cend(), v), 2);
   });
 }
+} // namespace
 
-int main() {
+TEST_CASE("day4") {
   auto countA = 0;
   auto countB = 0;
 
@@ -29,6 +34,6 @@ int main() {
     countB += isValid(pwd, std::equal_to<>{}) ? 1 : 0;
   }
 
-  std::cout << countA << '\n';
-  std::cout << countB << '\n';
+  REQUIRE(countA == 1729);
+  REQUIRE(countB == 1172);
 }
