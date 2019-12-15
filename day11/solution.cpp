@@ -1,3 +1,4 @@
+#include "coord.hpp"
 #include "intcode.hpp"
 
 #include <catch2/catch.hpp>
@@ -31,37 +32,21 @@ auto getNextOutputs(reuk::Interpreter &i, Colour c) -> std::optional<Output> {
   return {};
 }
 
-struct Coord final {
-  int64_t x{}, y{};
-};
-
-std::ostream &operator<<(std::ostream &os, const Coord &c) {
-  return os << '(' << c.x << ", " << c.y << ')';
-}
-
-auto tie(const Coord &c) { return std::tie(c.x, c.y); }
-auto operator<(const Coord &a, const Coord &b) { return tie(a) < tie(b); }
-auto operator+=(Coord &a, const Coord &b) -> auto & {
-  a.x += b.x;
-  a.y += b.y;
-  return a;
-}
-
-auto computeIncrement(Coord facing, Direction d) {
+auto computeIncrement(reuk::Coord facing, Direction d) -> reuk::Coord {
   switch (d) {
   case Direction::left:
-    return Coord{-facing.y, facing.x};
+    return {-facing.y, facing.x};
   case Direction::right:
-    return Coord{facing.y, -facing.x};
+    return {facing.y, -facing.x};
   }
 
   throw std::runtime_error{"no such direction"};
 }
 
 auto runPaint(reuk::Interpreter &i, Colour start) {
-  auto pos = Coord{};
-  auto facing = Coord{0, 1};
-  std::map<Coord, Colour> result{{pos, start}};
+  auto pos = reuk::Coord{};
+  auto facing = reuk::Coord{0, 1};
+  std::map<reuk::Coord, Colour> result{{pos, start}};
 
   while (auto out = getNextOutputs(i, result[pos])) {
     result[pos] = out->c;
@@ -72,15 +57,7 @@ auto runPaint(reuk::Interpreter &i, Colour start) {
   return result;
 }
 
-const auto min(const Coord &a, const Coord &b) {
-  return Coord{std::min(a.x, b.x), std::min(a.y, b.y)};
-}
-
-const auto max(const Coord &a, const Coord &b) {
-  return Coord{std::max(a.x, b.x), std::max(a.y, b.y)};
-}
-
-auto getColour(const std::map<Coord, Colour> &m, Coord c) {
+auto getColour(const std::map<reuk::Coord, Colour> &m, reuk::Coord c) {
   if (const auto it = m.find(c); it != m.end())
     return it->second;
   return Colour{};

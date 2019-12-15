@@ -1,3 +1,4 @@
+#include "coord.hpp"
 #include "intcode.hpp"
 
 #include <catch2/catch.hpp>
@@ -44,15 +45,6 @@ auto getNextOutput(reuk::Interpreter &i, const std::vector<int64_t> &ins = {})
   }
 
   return {};
-}
-
-struct Coord final {
-  int64_t x{}, y{};
-};
-
-constexpr auto tie(const Coord &c) { return std::tie(c.y, c.x); }
-constexpr auto operator<(const Coord &a, const Coord &b) {
-  return tie(a) < tie(b);
 }
 
 constexpr auto input = std::array{
@@ -307,10 +299,10 @@ auto getScreenUpdate(const Output &output) {
 
 auto countBlocks() {
   auto comp = reuk::Interpreter{input};
-  std::map<Coord, Tile> screen;
+  std::map<reuk::Coord, Tile> screen;
 
   while (auto out = getScreenUpdate(getNextOutput(comp)))
-    screen.emplace(Coord{out->x, out->y}, out->tile);
+    screen.emplace(reuk::Coord{out->x, out->y}, out->tile);
 
   return std::count_if(screen.cbegin(), screen.cend(),
                        [](const auto &it) { return it.second == Tile::block; });
@@ -333,14 +325,14 @@ char toChar(Tile t) {
   return ' ';
 }
 
-auto getCharAt(const std::map<Coord, Tile> &s, Coord c) {
+auto getCharAt(const std::map<reuk::Coord, Tile> &s, reuk::Coord c) {
   if (const auto it = s.find(c); it != s.cend())
     return toChar(it->second);
 
   return ' ';
 }
 
-auto drawScreen(const std::map<Coord, Tile> &s) {
+auto drawScreen(const std::map<reuk::Coord, Tile> &s) {
   constexpr auto width = 37;
   constexpr auto height = 23;
 
@@ -358,7 +350,7 @@ auto play() {
   prog[0] = 2;
   auto comp = reuk::Interpreter{prog};
 
-  std::map<Coord, Tile> screen;
+  std::map<reuk::Coord, Tile> screen;
   int64_t score{};
   int64_t paddlePos{};
   int64_t ballPos{};
@@ -366,7 +358,7 @@ auto play() {
 
   while (std::visit(
       overloaded{[&](const ScreenUpdate &su) {
-                   screen.insert_or_assign(Coord{su.x, su.y}, su.tile);
+                   screen.insert_or_assign(reuk::Coord{su.x, su.y}, su.tile);
 
                    auto ballPosChanged = false;
 

@@ -1,3 +1,5 @@
+#include "coord.hpp"
+
 #include <catch2/catch.hpp>
 
 #include <iostream>
@@ -12,25 +14,12 @@
 
 namespace {
 
-struct Coord {
-  int x{}, y{};
-};
-
-auto &operator+=(Coord &a, const Coord &b) {
-  a.x += b.x;
-  a.y += b.y;
-  return a;
-}
-
-auto tie(const Coord &c) { return std::tie(c.x, c.y); }
-auto operator<(const Coord &a, const Coord &b) { return tie(a) < tie(b); }
-
 struct Segment {
-  int distance{};
-  Coord direction{};
+  int64_t distance{};
+  reuk::Coord direction{};
 };
 
-auto charToVec(char d) -> Coord {
+auto charToVec(char d) -> reuk::Coord {
   switch (d) {
   case 'U':
     return {0, 1};
@@ -59,9 +48,9 @@ auto parsePath(const std::string &s) {
 }
 
 auto convertToMap(const std::vector<Segment> &segments) {
-  Coord coord;
-  int step{};
-  std::map<Coord, int> map;
+  reuk::Coord coord;
+  int64_t step{};
+  std::map<reuk::Coord, int64_t> map;
 
   for (const auto &seg : segments) {
     for (auto i = 0; i < seg.distance; ++i) {
@@ -75,11 +64,11 @@ auto convertToMap(const std::vector<Segment> &segments) {
 }
 
 template <typename Fn>
-auto minIntersection(const std::map<Coord, int> &a,
-                     const std::map<Coord, int> &b, Fn &&fn) {
+auto minIntersection(const std::map<reuk::Coord, int64_t> &a,
+                     const std::map<reuk::Coord, int64_t> &b, Fn &&fn) {
   return std::accumulate(
-      a.cbegin(), a.cend(), std::optional<int>{},
-      [&](const auto &acc, const auto &c) -> std::optional<int> {
+      a.cbegin(), a.cend(), std::optional<int64_t>{},
+      [&](const auto &acc, const auto &c) -> std::optional<int64_t> {
         if (auto it = b.find(c.first); it != b.cend()) {
           const auto result = fn(c, *it);
           return acc ? std::min(*acc, result) : result;
@@ -89,14 +78,15 @@ auto minIntersection(const std::map<Coord, int> &a,
       });
 }
 
-auto minManhattan(const std::map<Coord, int> &a,
-                  const std::map<Coord, int> &b) {
+auto minManhattan(const std::map<reuk::Coord, int64_t> &a,
+                  const std::map<reuk::Coord, int64_t> &b) {
   return minIntersection(a, b, [](const auto &aElem, const auto &) {
     return std::abs(aElem.first.x) + std::abs(aElem.first.y);
   });
 }
 
-auto minSteps(const std::map<Coord, int> &a, const std::map<Coord, int> &b) {
+auto minSteps(const std::map<reuk::Coord, int64_t> &a,
+              const std::map<reuk::Coord, int64_t> &b) {
   return minIntersection(a, b, [](const auto &aElem, const auto &bElem) {
     return aElem.second + bElem.second;
   });

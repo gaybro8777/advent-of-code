@@ -1,3 +1,5 @@
+#include "coord.hpp"
+
 #include <catch2/catch.hpp>
 
 #include <algorithm>
@@ -15,48 +17,9 @@ namespace {
 
 const auto pi = std::acos(-1.0);
 
-struct Coord final {
-  int64_t x{}, y{};
-};
-
-std::ostream &operator<<(std::ostream &os, const Coord &c) {
-  return os << '(' << c.x << ',' << c.y << ')';
-}
-
-auto tie(const Coord &c) { return std::tie(c.x, c.y); }
-auto operator<(const Coord &a, const Coord &b) { return tie(a) < tie(b); }
-auto operator==(const Coord &a, const Coord &b) { return tie(a) == tie(b); }
-auto operator!=(const Coord &a, const Coord &b) { return tie(a) != tie(b); }
-
-auto operator+=(Coord &a, const Coord &b) -> auto & {
-  a.x += b.x;
-  a.y += b.y;
-  return a;
-}
-
-auto operator-=(Coord &a, const Coord &b) -> auto & {
-  a.x -= b.x;
-  a.y -= b.y;
-  return a;
-}
-
-auto operator+(const Coord &a, const Coord &b) {
-  auto copy{a};
-  copy += b;
-  return copy;
-}
-
-auto operator-(const Coord &a, const Coord &b) {
-  auto copy{a};
-  copy -= b;
-  return copy;
-}
-
-auto magSq(const Coord &a) { return a.x * a.x + a.y * a.y; }
-
 template <typename Range> auto parseCoords(Range &&range) {
   int64_t x{}, y{};
-  std::set<Coord> result;
+  std::set<reuk::Coord> result;
 
   for (auto c : range) {
     switch (c) {
@@ -82,12 +45,12 @@ template <typename T> auto gcd(T a, T b) {
   return a;
 }
 
-auto angle(Coord t) {
+auto angle(reuk::Coord t) {
   return std::fmod(2 * pi + std::atan2(-t.x, t.y), 2 * pi);
 }
 
-auto relativeMap(const std::set<Coord> &coords, Coord target) {
-  std::map<double, std::vector<Coord>> map;
+auto relativeMap(const std::set<reuk::Coord> &coords, reuk::Coord target) {
+  std::map<double, std::vector<reuk::Coord>> map;
 
   for (auto c : coords) {
     if (c != target) {
@@ -104,7 +67,8 @@ auto relativeMap(const std::set<Coord> &coords, Coord target) {
   return map;
 }
 
-auto find200th(std::map<double, std::vector<Coord>> map, Coord target) {
+auto find200th(std::map<double, std::vector<reuk::Coord>> map,
+               reuk::Coord target) {
   auto it = map.begin();
   for (auto i = 0; i != 199; ++i) {
     it->second.erase(it->second.begin());
@@ -121,7 +85,7 @@ auto find200th(std::map<double, std::vector<Coord>> map, Coord target) {
   return target - it->second.front();
 }
 
-auto countVisible(const std::set<Coord> &coords, Coord target) {
+auto countVisible(const std::set<reuk::Coord> &coords, reuk::Coord target) {
   std::set<double> uniqueIncrements;
   for (auto other : coords)
     if (other != target)
@@ -159,15 +123,15 @@ constexpr char input[] = R"(#..#.#.#.######..#.#...##
 
 TEST_CASE("day10") {
   const auto coords = parseCoords(input);
-  const auto [mostVisible, pos] =
-      std::accumulate(coords.cbegin(), coords.cend(),
-                      std::tuple{size_t{0}, Coord{}}, [&](auto acc, auto c) {
-                        const auto visible = countVisible(coords, c);
-                        if (visible < std::get<0>(acc))
-                          return acc;
-                        return std::tuple{visible, c};
-                      });
+  const auto [mostVisible, pos] = std::accumulate(
+      coords.cbegin(), coords.cend(), std::tuple{size_t{0}, reuk::Coord{}},
+      [&](auto acc, auto c) {
+        const auto visible = countVisible(coords, c);
+        if (visible < std::get<0>(acc))
+          return acc;
+        return std::tuple{visible, c};
+      });
   REQUIRE(mostVisible == 253);
-  REQUIRE(find200th(relativeMap(coords, pos), pos) == Coord{8, 15});
+  REQUIRE(find200th(relativeMap(coords, pos), pos) == reuk::Coord{8, 15});
 }
 

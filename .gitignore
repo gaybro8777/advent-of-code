@@ -1,3 +1,5 @@
 */.stack-work
 */a.out*
 build*
+cmake-build*
+.idea
