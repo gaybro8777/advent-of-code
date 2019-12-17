@@ -5,6 +5,7 @@ target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(driver)
 target_sources(driver PRIVATE main.cpp)
 target_link_libraries(driver PRIVATE
+    utils
     day2
     day3
     day4
