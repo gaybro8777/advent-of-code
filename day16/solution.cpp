@@ -1,3 +1,5 @@
+#include <catch2/catch.hpp>
+
 #include <charconv>
 #include <iostream>
 #include <string>
@@ -27,20 +29,8 @@ auto fft(std::vector<int> pattern, size_t steps) {
   const auto size = pattern.size();
 
   for (size_t i = 0; i != steps; ++i) {
-    for (size_t j = 0; j != size; ++j) {
-      const auto ind = size - j - 1;
-
-      copy[ind] = [&]() -> int {
-        if (j == size - 1)
-          return pattern[ind];
-
-        if (ind > size / 2)
-          return (pattern[ind] + copy[ind + 1]) % 10;
-
-        return computeIndex(pattern, ind);
-      }();
-    }
-
+    for (size_t j = 0; j != size; ++j)
+      copy[j] = computeIndex(pattern, j);
     std::swap(copy, pattern);
   }
 
@@ -98,14 +88,12 @@ constexpr auto input =
     "97262125346089562586261622899814730167085034083199304361731693874836198471"
     "4845874270986989103792418940945322846146634931990046966552";
 
-auto main() -> int {
+TEST_CASE("day16") {
   const auto d = digits(input);
   const auto r = fft(d, 100);
 
-  for (auto i = 0; i != 8; ++i)
-    std::cout << r[i];
-
-  std::cout << '\n';
+  REQUIRE(std::vector(r.begin(), r.begin() + 8) ==
+          std::vector{6, 9, 5, 4, 9, 1, 5, 5});
 
   size_t offset{};
   std::from_chars(input, input + 7, offset);
@@ -113,8 +101,6 @@ auto main() -> int {
   const auto d2 = repeat(d, 10000);
   const auto r2 = subFft(d2, 100, offset);
 
-  for (auto i = 0; i != 8; ++i)
-    std::cout << r2[offset + i];
-
-  std::cout << '\n';
+  REQUIRE(std::vector(r2.begin() + offset, r2.begin() + offset + 8) ==
+          std::vector{8, 3, 2, 5, 3, 4, 6, 5});
 }
