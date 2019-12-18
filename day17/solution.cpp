@@ -1,4 +1,5 @@
 #include "coord.hpp"
+#include "direction2d.hpp"
 #include "intcode.hpp"
 
 #include <catch2/catch.hpp>
@@ -170,43 +171,6 @@ auto isScaffold(const std::vector<std::vector<char>> &map, reuk::Coord c) {
   return false;
 }
 
-enum class Direction { up, right, down, left };
-
-auto operator<<(std::ostream &os, Direction d) -> auto & {
-  return os << [&] {
-    switch (d) {
-    case Direction::up:
-      return 'u';
-    case Direction::right:
-      return 'r';
-    case Direction::down:
-      return 'd';
-    case Direction::left:
-      return 'l';
-    }
-
-    return ' ';
-  }();
-}
-
-constexpr auto allDirections = std::array{Direction::up, Direction::right,
-                                          Direction::down, Direction::left};
-
-constexpr auto toCoord(Direction d) -> reuk::Coord {
-  switch (d) {
-  case Direction::up:
-    return {0, -1};
-  case Direction::right:
-    return {1, 0};
-  case Direction::down:
-    return {0, 1};
-  case Direction::left:
-    return {-1, 0};
-  }
-
-  return {};
-}
-
 auto part1(const std::vector<std::vector<char>> &map) {
   int64_t result{};
 
@@ -215,8 +179,8 @@ auto part1(const std::vector<std::vector<char>> &map) {
       const auto location = reuk::Coord{j, i};
 
       if (isScaffold(map, location) &&
-          3 <= std::count_if(allDirections.cbegin(), allDirections.cend(),
-                             [&](auto d) {
+          3 <= std::count_if(reuk::directions2d.cbegin(),
+                             reuk::directions2d.cend(), [&](auto d) {
                                return isScaffold(map, location + toCoord(d));
                              })) {
         result += i * j;
@@ -265,8 +229,8 @@ auto findStartingCoord(const std::vector<std::vector<char>> &map)
   return {};
 }
 
-constexpr auto computeTurn(Direction from, Direction to) {
-  switch ((int64_t(to) - int64_t(from)) % allDirections.size()) {
+constexpr auto computeTurn(reuk::Direction2d from, reuk::Direction2d to) {
+  switch ((int64_t(to) - int64_t(from)) % reuk::directions2d.size()) {
   case 1:
     return Turn::right;
   case 3:
@@ -276,22 +240,26 @@ constexpr auto computeTurn(Direction from, Direction to) {
   throw std::runtime_error{"oh no"};
 }
 
-static_assert(computeTurn(Direction::up, Direction::right) == Turn::right);
-static_assert(computeTurn(Direction::up, Direction::left) == Turn::left);
+static_assert(computeTurn(reuk::Direction2d::up, reuk::Direction2d::right) ==
+              Turn::right);
+static_assert(computeTurn(reuk::Direction2d::up, reuk::Direction2d::left) ==
+              Turn::left);
 
-static_assert(computeTurn(Direction::down, Direction::right) == Turn::left);
-static_assert(computeTurn(Direction::down, Direction::left) == Turn::right);
+static_assert(computeTurn(reuk::Direction2d::down, reuk::Direction2d::right) ==
+              Turn::left);
+static_assert(computeTurn(reuk::Direction2d::down, reuk::Direction2d::left) ==
+              Turn::right);
 
 auto computeMovements(std::vector<std::vector<char>> map) {
   std::vector<Movement> result;
-  auto direction = Direction::up;
+  auto direction = reuk::Direction2d::up;
   auto loc = findStartingCoord(map);
 
   for (;;) {
     if (const auto it = std::find_if(
-            allDirections.cbegin(), allDirections.cend(),
+            reuk::directions2d.cbegin(), reuk::directions2d.cend(),
             [&](auto d) { return isScaffold(map, loc + toCoord(d)); });
-        it != allDirections.cend()) {
+        it != reuk::directions2d.cend()) {
       const auto lastDirection = std::exchange(direction, *it);
       const auto turn = computeTurn(lastDirection, direction);
       const auto increment = toCoord(direction);

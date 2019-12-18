@@ -1,4 +1,5 @@
 #include "coord.hpp"
+#include "direction2d.hpp"
 #include "intcode.hpp"
 
 #include <catch2/catch.hpp>
@@ -8,12 +9,18 @@
 #include <tuple>
 
 namespace {
-enum class Direction {
-  north = 1,
-  south,
-  west,
-  east,
-};
+auto toInt(reuk::Direction2d d) {
+  switch (d) {
+  case reuk::Direction2d::up:
+    return 1;
+  case reuk::Direction2d::down:
+    return 2;
+  case reuk::Direction2d::left:
+    return 3;
+  case reuk::Direction2d::right:
+    return 4;
+  }
+}
 
 enum class Tile {
   wall,
@@ -36,35 +43,17 @@ auto operator<<(std::ostream &os, Tile t) -> auto & {
   }();
 }
 
-auto run(reuk::Interpreter &interpreter, Direction dir) -> Tile {
-  if (const auto result = interpreter.runUntilOutput(std::array{int(dir)}))
+auto run(reuk::Interpreter &interpreter, reuk::Direction2d dir) -> Tile {
+  if (const auto result = interpreter.runUntilOutput(std::array{toInt(dir)}))
     return Tile(*result);
   return {};
 }
-
-constexpr auto toCoord(Direction d) -> reuk::Coord {
-  switch (d) {
-  case Direction::north:
-    return {0, 1};
-  case Direction::south:
-    return {0, -1};
-  case Direction::west:
-    return {-1, 0};
-  case Direction::east:
-    return {1, 0};
-  }
-
-  return {};
-}
-
-constexpr auto allDirections = std::array{Direction::north, Direction::south,
-                                          Direction::west, Direction::east};
 
 auto createMap(reuk::Interpreter interpreter) {
   struct StateToTry final {
     reuk::Interpreter interpreter;
     reuk::Coord start;
-    Direction dir;
+    reuk::Direction2d dir;
     int64_t steps{};
   };
 
@@ -72,7 +61,7 @@ auto createMap(reuk::Interpreter interpreter) {
   std::vector<StateToTry> stack;
   std::optional<int64_t> distanceToGoal;
 
-  for (const auto d : allDirections)
+  for (const auto d : reuk::directions2d)
     stack.push_back({interpreter, {0, 0}, d, 1});
 
   while (!stack.empty()) {
@@ -93,7 +82,7 @@ auto createMap(reuk::Interpreter interpreter) {
     if (tile == Tile::wall || tile == Tile::goal)
       continue;
 
-    for (const auto d : allDirections)
+    for (const auto d : reuk::directions2d)
       stack.push_back({stateToTry.interpreter, pos, d, stateToTry.steps + 1});
   }
 
@@ -221,7 +210,7 @@ const auto timeToFill(const std::map<reuk::Coord, Tile> &map) {
       it->second = Tile::wall;
       longestTime = std::max(longestTime, state.currentTime);
 
-      for (const auto d : allDirections)
+      for (const auto d : reuk::directions2d)
         stack.push_back({state.start + toCoord(d), state.currentTime + 1});
     }
   }
