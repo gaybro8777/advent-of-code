@@ -8,9 +8,9 @@
 #include <iostream>
 #include <map>
 #include <optional>
+#include <queue>
 #include <set>
 #include <string>
-#include <queue>
 
 namespace {
 
@@ -68,17 +68,17 @@ private:
 };
 
 class KeySet final {
-  auto tie() const noexcept { return std::tie (bitfield); }
+  auto tie() const noexcept { return std::tie(bitfield); }
 
 public:
   KeySet() = default;
 
-  auto operator-=(const char c) noexcept -> auto&{
+  auto operator-=(const char c) noexcept -> auto & {
     bitfield &= ~(1 << (c - 'a'));
     return *this;
   }
 
-  auto operator+=(const char c) noexcept -> auto&{
+  auto operator+=(const char c) noexcept -> auto & {
     bitfield |= (1 << (c - 'a'));
     return *this;
   }
@@ -97,8 +97,7 @@ public:
     return bitfield & (1 << (c - 'a'));
   }
 
-  template <typename Fn>
-  auto forEach (Fn&& fn) const noexcept {
+  template <typename Fn> auto forEach(Fn &&fn) const noexcept {
     constexpr auto bits = sizeof(bitfield) * 8;
 
     for (auto c = 'a'; c <= 'z'; ++c) {
@@ -107,7 +106,7 @@ public:
     }
   }
 
-  auto operator<(const KeySet& k) const noexcept { return tie() < k.tie(); }
+  auto operator<(const KeySet &k) const noexcept { return tie() < k.tie(); }
 
   auto empty() const noexcept { return bitfield == 0; }
 
@@ -193,9 +192,8 @@ public:
       -> std::optional<size_t> {
     if (const auto it = memory.find(pair); it != memory.cend()) {
       const auto &requiredKeys = it->second.requiredKeys;
-      if (std::all_of(requiredKeys.cbegin(), requiredKeys.cend(), [&](auto c) {
-            return ! remainingKeys.contains(c);
-          })) {
+      if (std::all_of(requiredKeys.cbegin(), requiredKeys.cend(),
+                      [&](auto c) { return !remainingKeys.contains(c); })) {
         return it->second.distance;
       }
 
@@ -221,10 +219,9 @@ private:
   std::map<CharPair, RequiredKeysAndDistance> memory;
 };
 
-auto part1v2(char currentKey,
-    const MemoizedStepsToKey& memoized,
-    const KeySet keys,
-    std::map<std::tuple<char, KeySet>, size_t>& cache) {
+auto part1v2(char currentKey, const MemoizedStepsToKey &memoized,
+             const KeySet keys,
+             std::map<std::tuple<char, KeySet>, size_t> &cache) {
   if (keys.empty())
     return size_t{};
 
@@ -235,11 +232,11 @@ auto part1v2(char currentKey,
 
   auto result = std::numeric_limits<size_t>::max();
 
-  keys.forEach ([&] (auto key) {
+  keys.forEach([&](auto key) {
     if (const auto dist = memoized.compute(keys, {currentKey, key}))
       result =
           std::min(result, *dist + part1v2(key, memoized, keys - key, cache));
-    });
+  });
 
   cache[cacheKey] = result;
   return result;
@@ -252,7 +249,8 @@ auto part1v2(char currentKey,
 // and return the min distance if so, and nullopt if not.
 
 TEST_CASE("day18") {
-  constexpr char input[] = R"(#################################################################################
+  constexpr char input[] =
+      R"(#################################################################################
 #.......#.......#..q..W...#..n......F...#.......#...#...#.....#.....#.#.......#.#
 #.#######.###.###.#####.#.#.###########.#.#####.#.#.#.###.###.#.###.#.#.#.###.#.#
 #..x........#.....#...#.#.#.#.........#.#...#...#.#...#...#.#.....#.#...#.#...#.#
@@ -340,7 +338,7 @@ TEST_CASE("day18") {
   std::map<std::tuple<char, KeySet>, size_t> cache;
 
   KeySet keySet;
-  for (const auto& key : map.remainingKeys())
+  for (const auto &key : map.remainingKeys())
     keySet += key;
 
   std::cout << part1v2('@', memoized, keySet, cache) << '\n';
