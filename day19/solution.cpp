@@ -56,14 +56,18 @@ TEST_CASE("day19") {
     return reuk::Interpreter{input}.runUntilOutput(std::array{c.x, c.y});
   };
 
-  size_t affected{};
+  const auto affected = [&] {
+    size_t ret{};
 
-  for (auto x = 0; x != 50; ++x) {
-    for (auto y = 0; y != 50; ++y) {
-      if (const auto result = compute(reuk::Coord{x, y}))
-        affected += *result;
+    for (auto x = 0; x != 50; ++x) {
+      for (auto y = 0; y != 50; ++y) {
+        if (const auto result = compute(reuk::Coord{x, y}))
+          ret += *result;
+      }
     }
-  }
+
+    return ret;
+  }();
 
   REQUIRE(affected == 131);
 

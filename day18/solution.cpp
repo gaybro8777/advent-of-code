@@ -10,6 +10,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <queue>
 
 namespace {
 
@@ -138,12 +139,12 @@ public:
       addToMemory(map, from);
   }
 
-  auto compute(const std::set<char> &ownedKeys, CharPair pair) const
+  auto compute(const std::set<char> &remainingKeys, CharPair pair) const
       -> std::optional<size_t> {
     if (const auto it = memory.find(pair); it != memory.cend()) {
       const auto &requiredKeys = it->second.requiredKeys;
       if (std::all_of(requiredKeys.cbegin(), requiredKeys.cend(), [&](auto c) {
-            return ownedKeys.find(c) != ownedKeys.cend();
+            return remainingKeys.find(c) == remainingKeys.cend();
           })) {
         return it->second.distance;
       }
@@ -170,40 +171,75 @@ private:
   std::map<CharPair, RequiredKeysAndDistance> memory;
 };
 
-auto part1(const std::set<char> &allKeys, char start, size_t stepsSoFar,
-           const MemoizedStepsToKey &memoized, std::set<char> &ownedKeys)
-    -> std::optional<size_t> {
-  if (ownedKeys == allKeys)
-    return stepsSoFar;
+auto part1(const std::set<char>& allKeys, const MemoizedStepsToKey &memoized) {
+  struct Entry final {
+    std::vector<char> order;
+    std::set<char> ownedKeysSet;
+    size_t totalDistance{};
+  };
 
-  const auto remainingKeys = [&] {
-    std::set<char> ret;
-    std::set_difference(allKeys.cbegin(), allKeys.cend(), ownedKeys.cbegin(),
-                        ownedKeys.cend(), std::inserter(ret, ret.begin()));
-    return ret;
-  }();
+  size_t maxKeys{};
+  size_t result{};
 
-  std::optional<size_t> result;
+  std::queue<Entry> queue;
+  queue.push({{'@'}, {'@'}, 0});
 
-  for (const auto key : remainingKeys) {
-    const auto dist = memoized.compute(ownedKeys, {start, key});
+  while (! queue.empty()) {
+    const auto& entry = queue.front();
 
-    if (!dist)
-      continue;
-
-    ownedKeys.insert(key);
-    const reuk::ScopeGuard scope{[&] { ownedKeys.erase(key); }};
-
-    if (const auto totalSteps =
-            part1(allKeys, key, stepsSoFar + *dist, memoized, ownedKeys)) {
-      result = [&] {
-        if (result)
-          return std::min(*result, *totalSteps);
-        return *totalSteps;
-      }();
+    if (entry.order.size() > maxKeys) {
+      maxKeys = entry.order.size();
+      result = entry.totalDistance;
+    } else if (entry.order.size() == maxKeys) {
+      result = std::min(result, entry.totalDistance);
     }
+
+    for (const auto key : allKeys) {
+      if (const auto it = entry.ownedKeysSet.find(key); it != entry.ownedKeysSet.cend())
+        continue;
+
+      const auto start = entry.order.back();
+
+      if (const auto dist = memoized.compute(entry.ownedKeysSet, CharPair{start, key})) {
+        auto copy {entry};
+        copy.order.push_back(key);
+        copy.ownedKeysSet.insert(key);
+        copy.totalDistance += *dist;
+        queue.push(std::move(copy));
+      }
+    }
+
+    queue.pop();
   }
 
+  return result;
+}
+
+auto operator-(const std::set<char>& set, char c) {
+  auto copy{set};
+  copy.erase(c);
+  return copy;
+}
+
+auto part1v2(char currentKey,
+    const MemoizedStepsToKey& memoized,
+    const std::set<char>& keys,
+    std::map<std::tuple<char, std::set<char>>, size_t>& cache) {
+  if (keys.empty())
+    return size_t{};
+
+  const auto cacheKey = std::tuple(currentKey, keys);
+
+  if (const auto it = cache.find(cacheKey); it != cache.cend())
+    return it->second;
+
+  auto result = std::numeric_limits<size_t>::max();
+
+  for (const auto key : keys)
+    if (const auto dist = memoized.compute(keys, {currentKey, key}))
+      result = std::min(result, *dist + part1v2(key, memoized, keys - key, cache));
+
+  cache[cacheKey] = result;
   return result;
 }
 
@@ -228,7 +264,5 @@ TEST_CASE("day18") {
   Map map(input);
   MemoizedStepsToKey memoized{map, '@'};
   std::set<char> ownedKeys;
-  std::cout
-      << part1(map.remainingKeys(), '@', 0, memoized, ownedKeys).value_or(0)
-      << '\n';
+  std::cout << part1(map.remainingKeys(), memoized) << '\n';
 }
