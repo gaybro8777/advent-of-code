@@ -34,11 +34,6 @@ public:
   explicit Map(std::string_view m)
       : storage(m), width(storage.find('\n') + 1) {}
 
-  auto set(reuk::Coord c, char t) noexcept {
-    if (const auto ind = toInd(c))
-      storage[*ind] = t;
-  }
-
   auto get(reuk::Coord c) const noexcept -> std::optional<char> {
     if (const auto ind = toInd(c))
       return storage[*ind];
@@ -46,11 +41,6 @@ public:
   }
 
   auto get(char c) const noexcept { return toCoord(storage.find(c)); }
-
-  auto unlock(char c) {
-    for (const auto t : std::array{c, char(std::toupper(c))})
-      std::replace(storage.begin(), storage.end(), t, '.');
-  }
 
   auto remainingKeys() const noexcept {
     std::set<char> result;

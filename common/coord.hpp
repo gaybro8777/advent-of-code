@@ -15,35 +15,35 @@ inline auto operator<<(std::ostream &os, const Coord &c) -> auto & {
   return os << '(' << c.x << ", " << c.y << ')';
 }
 
-inline auto tie(const Coord &c) { return std::tie(c.x, c.y); }
-inline auto operator<(const Coord &a, const Coord &b) {
+constexpr auto tie(const Coord &c) { return std::tie(c.x, c.y); }
+constexpr auto operator<(const Coord &a, const Coord &b) {
   return tie(a) < tie(b);
 }
-inline auto operator==(const Coord &a, const Coord &b) {
+constexpr auto operator==(const Coord &a, const Coord &b) {
   return tie(a) == tie(b);
 }
-inline auto operator!=(const Coord &a, const Coord &b) {
+constexpr auto operator!=(const Coord &a, const Coord &b) {
   return tie(a) != tie(b);
 }
 
-inline auto operator+=(Coord &a, const Coord &b) -> auto & {
+constexpr auto operator+=(Coord &a, const Coord &b) -> auto & {
   a.x += b.x;
   a.y += b.y;
   return a;
 }
 
-inline auto operator+(const Coord &a, const Coord &b) {
+constexpr auto operator+(const Coord &a, const Coord &b) {
   auto copy{a};
   return copy += b;
 }
 
-inline auto operator-=(Coord &a, const Coord &b) -> auto & {
+constexpr auto operator-=(Coord &a, const Coord &b) -> auto & {
   a.x -= b.x;
   a.y -= b.y;
   return a;
 }
 
-inline auto operator-(const Coord &a, const Coord &b) {
+constexpr auto operator-(const Coord &a, const Coord &b) {
   auto copy{a};
   return copy -= b;
 }
@@ -56,6 +56,6 @@ inline auto max(const Coord &a, const Coord &b) {
   return Coord{std::max(a.x, b.x), std::max(a.y, b.y)};
 }
 
-inline auto magSq(const Coord &a) { return a.x * a.x + a.y * a.y; }
+constexpr auto magSq(const Coord &a) { return a.x * a.x + a.y * a.y; }
 
 } // namespace reuk
