@@ -42,73 +42,84 @@ template <size_t Params> auto Interpreter::readParams() {
   return result;
 }
 
-auto Interpreter::runUntilOutput() -> std::optional<int64_t> {
-  using std::begin, std::end;
-
-  for (;;) {
-    switch (program[ip] % 100) {
-    case 1: {
-      auto params = readParams<3>();
-      params[2].get() = params[0] + params[1];
-      break;
-    }
-    case 2: {
-      auto params = readParams<3>();
-      params[2].get() = params[0] * params[1];
-      break;
-    }
-    case 3: {
-      if (inputs.empty())
-        return {};
-
-      auto params = readParams<1>();
-      params[0].get() = [&]() -> int64_t {
-        if (inputs.empty())
-          return -1;
-
-        const auto result = inputs.front();
-        inputs.pop_front();
-        return result;
-      }();
-      break;
-    }
-    case 4: {
-      auto params = readParams<1>();
-      return params[0].get();
-    }
-    case 5: {
-      auto params = readParams<2>();
-      updateProgramSize(params[1]);
-      ip = params[0] ? int64_t{params[1]} : ip;
-      break;
-    }
-    case 6: {
-      auto params = readParams<2>();
-      updateProgramSize(params[1]);
-      ip = !params[0] ? int64_t{params[1]} : ip;
-      break;
-    }
-    case 7: {
-      auto params = readParams<3>();
-      params[2].get() = params[0] < params[1] ? 1 : 0;
-      break;
-    }
-    case 8: {
-      auto params = readParams<3>();
-      params[2].get() = params[0] == params[1] ? 1 : 0;
-      break;
-    }
-    case 9: {
-      auto params = readParams<1>();
-      relativeBase += params[0];
-      break;
-    }
-    case 99:
-      [[fallthrough]];
-    default:
-      return {};
-    }
+auto Interpreter::step() -> StepResult {
+  switch (program[ip] % 100) {
+  case 1: {
+    auto params = readParams<3>();
+    params[2].get() = params[0] + params[1];
+    break;
   }
+  case 2: {
+    auto params = readParams<3>();
+    params[2].get() = params[0] * params[1];
+    break;
+  }
+  case 3: {
+    auto params = readParams<1>();
+    params[0].get() = [&]() -> int64_t {
+      if (inputs.empty())
+        return -1;
+
+      const auto result = inputs.front();
+      inputs.pop_front();
+      return result;
+    }();
+    break;
+  }
+  case 4: {
+    auto params = readParams<1>();
+    return Success{params[0].get()};
+  }
+  case 5: {
+    auto params = readParams<2>();
+    updateProgramSize(params[1]);
+    ip = params[0] ? int64_t{params[1]} : ip;
+    break;
+  }
+  case 6: {
+    auto params = readParams<2>();
+    updateProgramSize(params[1]);
+    ip = !params[0] ? int64_t{params[1]} : ip;
+    break;
+  }
+  case 7: {
+    auto params = readParams<3>();
+    params[2].get() = params[0] < params[1] ? 1 : 0;
+    break;
+  }
+  case 8: {
+    auto params = readParams<3>();
+    params[2].get() = params[0] == params[1] ? 1 : 0;
+    break;
+  }
+  case 9: {
+    auto params = readParams<1>();
+    relativeBase += params[0];
+    break;
+  }
+  case 99:
+    [[fallthrough]];
+  default:
+    return Failure{};
+  }
+
+  return Ongoing{};
+}
+
+auto Interpreter::runUntilOutput() -> std::optional<int64_t> {
+  using OptOpt = std::optional<std::optional<int64_t>>;
+
+  for (;;)
+    if (const auto result = std::visit(
+            Overloaded{
+                [](Ongoing) -> OptOpt { return {}; },
+                [](Failure) -> OptOpt { return std::optional<int64_t>{}; },
+                [](Success s) -> OptOpt {
+                  return std::optional<int64_t>{s.value};
+                },
+            },
+            step()))
+      return *result;
 }
 
 } // namespace reuk

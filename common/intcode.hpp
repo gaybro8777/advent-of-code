@@ -5,8 +5,12 @@
 #include <cstdint>
 #include <deque>
 #include <optional>
+#include <variant>
 
 namespace reuk {
+
+template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts> Overloaded(Ts...)->Overloaded<Ts...>;
 
 class Interpreter final {
 public:
@@ -15,6 +19,15 @@ public:
       : program(std::begin(prog), std::end(prog)),
         inputs(std::begin(ins), std::end(ins)) {}
 
+  struct Ongoing final {};
+  struct Failure final {};
+  struct Success final {
+    int64_t value{};
+  };
+
+  using StepResult = std::variant<Ongoing, Failure, Success>;
+
+  auto step() -> StepResult;
   auto runUntilOutput() -> std::optional<int64_t>;
 
   template <typename Inputs> auto queueInputs(Inputs &&in) {

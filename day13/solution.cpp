@@ -285,12 +285,9 @@ constexpr auto input = std::array{
     83,    12,    27,    64,    91,    14,    65,     52,    8,     49,
     48,    437598};
 
-template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template <class... Ts> overloaded(Ts...)->overloaded<Ts...>;
-
 auto getScreenUpdate(const Output &output) {
   return std::visit(
-      overloaded{
+      reuk::Overloaded{
           [](const ScreenUpdate &su) -> std::optional<ScreenUpdate> {
             return su;
           },
@@ -358,39 +355,40 @@ auto play() {
   std::vector<int64_t> nextInput;
 
   while (std::visit(
-      overloaded{[&](const ScreenUpdate &su) {
-                   screen.insert_or_assign(reuk::Coord{su.x, su.y}, su.tile);
+      reuk::Overloaded{
+          [&](const ScreenUpdate &su) {
+            screen.insert_or_assign(reuk::Coord{su.x, su.y}, su.tile);
 
-                   auto ballPosChanged = false;
+            auto ballPosChanged = false;
 
-                   switch (su.tile) {
-                   case Tile::paddle:
-                     paddlePos = su.x;
-                     break;
-                   case Tile::ball:
-                     ballPosChanged = ballPos != su.x;
-                     ballPos = su.x;
-                     break;
-                   default:
-                     break;
-                   }
+            switch (su.tile) {
+            case Tile::paddle:
+              paddlePos = su.x;
+              break;
+            case Tile::ball:
+              ballPosChanged = ballPos != su.x;
+              ballPos = su.x;
+              break;
+            default:
+              break;
+            }
 
-                   nextInput = !ballPosChanged ? std::vector<int64_t>{}
-                                               : std::vector<int64_t>{[&] {
-                                                   if (paddlePos < ballPos)
-                                                     return 1;
-                                                   if (ballPos < paddlePos)
-                                                     return -1;
-                                                   return 0;
-                                                 }()};
+            nextInput = !ballPosChanged ? std::vector<int64_t>{}
+                                        : std::vector<int64_t>{[&] {
+                                            if (paddlePos < ballPos)
+                                              return 1;
+                                            if (ballPos < paddlePos)
+                                              return -1;
+                                            return 0;
+                                          }()};
 
-                   return true;
-                 },
-                 [&](const Score &s) {
-                   score = s.value;
-                   return true;
-                 },
-                 [](const std::monostate &) { return false; }},
+            return true;
+          },
+          [&](const Score &s) {
+            score = s.value;
+            return true;
+          },
+          [](const std::monostate &) { return false; }},
       getNextOutput(comp, nextInput)))
     ;
 
