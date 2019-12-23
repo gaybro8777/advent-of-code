@@ -8,43 +8,16 @@
 
 namespace {
 constexpr auto dealIntoNewStack(int64_t oldPos, int64_t deckSize) {
-  return deckSize - 1 - oldPos;
+  return (deckSize - 1 - oldPos) % deckSize;
 }
 
 constexpr auto cutNCards(int64_t oldPos, int64_t deckSize, int64_t num) {
-  if (num > 0) {
-    oldPos -= num;
-
-    if (oldPos < 0)
-      oldPos += deckSize;
-  } else {
-    oldPos -= num;
-
-    if (deckSize <= oldPos)
-      oldPos -= deckSize;
-  }
-
-  return oldPos;
-}
-
-constexpr auto mulmod(int64_t a, int64_t b, int64_t mod) {
-  int64_t res = 0;
-  a = a % mod;
-
-  while (b > 0) {
-    if (b % 2 == 1)
-      res = (res + a) % mod;
-
-    a = (a * 2) % mod;
-    b /= 2;
-  }
-
-  return res % mod;
+  return (oldPos + deckSize - num) % deckSize;
 }
 
 constexpr auto dealWithIncrementN(int64_t oldPos, int64_t deckSize,
                                   int64_t num) {
-  return mulmod(oldPos, num, deckSize);
+  return (oldPos * num) % deckSize;
 }
 
 static_assert(dealWithIncrementN(0, 10, 7) == 0);
@@ -219,36 +192,6 @@ auto applyAllOps(int64_t card, int64_t deckSize, const std::vector<Op> &ops) {
 
 auto pt1() { return applyAllOps(2019, 10007, getOps(input)); }
 
-constexpr auto crackUnknownIncrement(std::array<int64_t, 2> states,
-                                     int64_t modulus, int64_t multiplier) {
-  const int64_t increment = (states[1] - states[0] * multiplier) % modulus;
-  return std::tuple{modulus, multiplier, increment};
-}
-
-constexpr auto egcd(int64_t a, int64_t b) -> std::tuple<int64_t, int64_t, int64_t>{
-  if (a == 0)
-    return {b, 0, 1};
-
-  const auto [g, x, y] = egcd(b % a, a);
-  return {g, y - (b / a) * x, x};
-}
-
-constexpr auto modinv(int64_t b, int64_t n) {
-  const auto [g, x, _] = egcd(b, n);
-  if (g == 1)
-    return x % n;
-  return int64_t{};
-}
-
-constexpr auto crackUnknownMultiplier(std::array<int64_t, 3> states,
-                                      int64_t modulus) {
-  const auto multiplier = __int128(states[2] - states[1]) *
-                          __int128(modinv(states[1] - states[0], modulus)) %
-                          modulus;
-  return crackUnknownIncrement(std::array{states[0], states[1]}, modulus,
-                               multiplier);
-}
-
 } // namespace
 
 TEST_CASE("day22") {
@@ -256,15 +199,4 @@ TEST_CASE("day22") {
 
   const auto ops = getOps(input);
   const int64_t deckSize = 119315717514047;
-  const int64_t s0 = 0;
-  const auto s1 = applyAllOps(s0, deckSize, ops);
-  const auto s2 = applyAllOps(s1, deckSize, ops);
-
-  const auto [modulus, multiplier, increment] =
-      crackUnknownMultiplier(std::array{s0, s1, s2}, deckSize);
-
-  const auto s3 = applyAllOps(s2, deckSize, ops);
-  const auto v2 = (mulmod(s2, multiplier, modulus) + increment) % modulus;
-
-//  REQUIRE(s3 == v2);
 }

@@ -33,7 +33,8 @@ using Output = std::variant<std::monostate, ScreenUpdate, Score>;
 
 auto getNextOutput(reuk::Interpreter &i, const std::vector<int64_t> &ins = {})
     -> Output {
-  const auto x = i.runUntilOutput(ins);
+  i.queueInputs(ins);
+  const auto x = i.runUntilOutput();
   const auto y = i.runUntilOutput();
   const auto t = i.runUntilOutput();
 

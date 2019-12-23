@@ -53,7 +53,7 @@ TEST_CASE("day19") {
       -5,    2105,  1,     0};
 
   const auto compute = [&](auto c) {
-    return reuk::Interpreter{input}.runUntilOutput(std::array{c.x, c.y});
+    return reuk::Interpreter{input, std::array{c.x, c.y}}.runUntilOutput();
   };
 
   const auto affected = [&] {

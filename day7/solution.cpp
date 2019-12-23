@@ -35,7 +35,9 @@ auto runAmplifiersWithFeedback(Program &&program,
     if (it == interpreters.end())
       it = interpreters.begin();
 
-    if (const auto result = it->runUntilOutput(std::array{in}))
+    it->queueInputs(std::array{in});
+
+    if (const auto result = it->runUntilOutput())
       in = *result;
     else
       break;

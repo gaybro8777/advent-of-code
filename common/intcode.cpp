@@ -62,8 +62,14 @@ auto Interpreter::runUntilOutput() -> std::optional<int64_t> {
         return {};
 
       auto params = readParams<1>();
-      params[0].get() = inputs.front();
-      inputs.pop_front();
+      params[0].get() = [&]() -> int64_t {
+        if (inputs.empty())
+          return -1;
+
+        const auto result = inputs.front();
+        inputs.pop_front();
+        return result;
+      }();
       break;
     }
     case 4: {

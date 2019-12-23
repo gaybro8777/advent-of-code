@@ -24,7 +24,8 @@ struct Output final {
 };
 
 auto getNextOutputs(reuk::Interpreter &i, Colour c) -> std::optional<Output> {
-  const auto out0 = i.runUntilOutput(std::array{int64_t(c)});
+  i.queueInputs(std::array{int64_t(c)});
+  const auto out0 = i.runUntilOutput();
   const auto out1 = i.runUntilOutput();
 
   if (out0 && out1)

@@ -44,7 +44,8 @@ auto operator<<(std::ostream &os, Tile t) -> auto & {
 }
 
 auto run(reuk::Interpreter &interpreter, reuk::Direction2d dir) -> Tile {
-  if (const auto result = interpreter.runUntilOutput(std::array{toInt(dir)}))
+  interpreter.queueInputs(std::array{toInt(dir)});
+  if (const auto result = interpreter.runUntilOutput())
     return Tile(*result);
   return {};
 }

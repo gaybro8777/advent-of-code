@@ -17,11 +17,9 @@ public:
 
   auto runUntilOutput() -> std::optional<int64_t>;
 
-  template <typename Inputs = std::array<int64_t, 0>>
-  auto runUntilOutput(Inputs &&newInputs) -> std::optional<int64_t> {
+  template <typename Inputs> auto queueInputs(Inputs &&in) {
     using std::begin, std::end;
-    inputs.insert(inputs.end(), std::begin(newInputs), std::end(newInputs));
-    return runUntilOutput();
+    inputs.insert(inputs.end(), begin(in), end(in));
   }
 
   auto &operator[](size_t addr) const noexcept { return program[addr]; }

@@ -122,9 +122,8 @@ TEST_CASE("day9") {
       968,  22102,    1,        -2,    -2,    109,   -3,       2105,  1,
       0};
 
-  const auto runWithInput = [&](auto input) {
-    auto comp = reuk::Interpreter{prog, std::array<int64_t, 0>{}};
-    return comp.runUntilOutput(std::array<int64_t, 1>{input});
+  const auto runWithInput = [&](int64_t input) {
+    return reuk::Interpreter{prog, std::array{input}}.runUntilOutput();
   };
 
   REQUIRE(runWithInput(1) == 2457252183);
