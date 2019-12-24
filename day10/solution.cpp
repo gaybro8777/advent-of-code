@@ -19,7 +19,7 @@ const auto pi = std::acos(-1.0);
 
 template <typename Range> auto parseCoords(Range &&range) {
   int64_t x{}, y{};
-  std::set<reuk::Coord> result;
+  std::set<aoc::Coord> result;
 
   for (auto c : range) {
     switch (c) {
@@ -45,12 +45,12 @@ template <typename T> auto gcd(T a, T b) {
   return a;
 }
 
-auto angle(reuk::Coord t) {
+auto angle(aoc::Coord t) {
   return std::fmod(2 * pi + std::atan2(-t.x, t.y), 2 * pi);
 }
 
-auto relativeMap(const std::set<reuk::Coord> &coords, reuk::Coord target) {
-  std::map<double, std::vector<reuk::Coord>> map;
+auto relativeMap(const std::set<aoc::Coord> &coords, aoc::Coord target) {
+  std::map<double, std::vector<aoc::Coord>> map;
 
   for (auto c : coords) {
     if (c != target) {
@@ -67,8 +67,8 @@ auto relativeMap(const std::set<reuk::Coord> &coords, reuk::Coord target) {
   return map;
 }
 
-auto find200th(std::map<double, std::vector<reuk::Coord>> map,
-               reuk::Coord target) {
+auto find200th(std::map<double, std::vector<aoc::Coord>> map,
+               aoc::Coord target) {
   auto it = map.begin();
   for (auto i = 0; i != 199; ++i) {
     it->second.erase(it->second.begin());
@@ -85,7 +85,7 @@ auto find200th(std::map<double, std::vector<reuk::Coord>> map,
   return target - it->second.front();
 }
 
-auto countVisible(const std::set<reuk::Coord> &coords, reuk::Coord target) {
+auto countVisible(const std::set<aoc::Coord> &coords, aoc::Coord target) {
   std::set<double> uniqueIncrements;
   for (auto other : coords)
     if (other != target)
@@ -124,7 +124,7 @@ constexpr char input[] = R"(#..#.#.#.######..#.#...##
 TEST_CASE("day10") {
   const auto coords = parseCoords(input);
   const auto [mostVisible, pos] = std::accumulate(
-      coords.cbegin(), coords.cend(), std::tuple{size_t{0}, reuk::Coord{}},
+      coords.cbegin(), coords.cend(), std::tuple{size_t{0}, aoc::Coord{}},
       [&](auto acc, auto c) {
         const auto visible = countVisible(coords, c);
         if (visible < std::get<0>(acc))
@@ -132,6 +132,6 @@ TEST_CASE("day10") {
         return std::tuple{visible, c};
       });
   REQUIRE(mostVisible == 253);
-  REQUIRE(find200th(relativeMap(coords, pos), pos) == reuk::Coord{8, 15});
+  REQUIRE(find200th(relativeMap(coords, pos), pos) == aoc::Coord{8, 15});
 }
 

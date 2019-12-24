@@ -16,10 +16,10 @@ namespace {
 
 struct Segment {
   int64_t distance{};
-  reuk::Coord direction{};
+  aoc::Coord direction{};
 };
 
-auto charToVec(char d) -> reuk::Coord {
+auto charToVec(char d) -> aoc::Coord {
   switch (d) {
   case 'U':
     return {0, 1};
@@ -48,9 +48,9 @@ auto parsePath(const std::string &s) {
 }
 
 auto convertToMap(const std::vector<Segment> &segments) {
-  reuk::Coord coord;
+  aoc::Coord coord;
   int64_t step{};
-  std::map<reuk::Coord, int64_t> map;
+  std::map<aoc::Coord, int64_t> map;
 
   for (const auto &seg : segments) {
     for (auto i = 0; i < seg.distance; ++i) {
@@ -64,8 +64,8 @@ auto convertToMap(const std::vector<Segment> &segments) {
 }
 
 template <typename Fn>
-auto minIntersection(const std::map<reuk::Coord, int64_t> &a,
-                     const std::map<reuk::Coord, int64_t> &b, Fn &&fn) {
+auto minIntersection(const std::map<aoc::Coord, int64_t> &a,
+                     const std::map<aoc::Coord, int64_t> &b, Fn &&fn) {
   return std::accumulate(
       a.cbegin(), a.cend(), std::optional<int64_t>{},
       [&](const auto &acc, const auto &c) -> std::optional<int64_t> {
@@ -78,15 +78,15 @@ auto minIntersection(const std::map<reuk::Coord, int64_t> &a,
       });
 }
 
-auto minManhattan(const std::map<reuk::Coord, int64_t> &a,
-                  const std::map<reuk::Coord, int64_t> &b) {
+auto minManhattan(const std::map<aoc::Coord, int64_t> &a,
+                  const std::map<aoc::Coord, int64_t> &b) {
   return minIntersection(a, b, [](const auto &aElem, const auto &) {
     return std::abs(aElem.first.x) + std::abs(aElem.first.y);
   });
 }
 
-auto minSteps(const std::map<reuk::Coord, int64_t> &a,
-              const std::map<reuk::Coord, int64_t> &b) {
+auto minSteps(const std::map<aoc::Coord, int64_t> &a,
+              const std::map<aoc::Coord, int64_t> &b) {
   return minIntersection(a, b, [](const auto &aElem, const auto &bElem) {
     return aElem.second + bElem.second;
   });

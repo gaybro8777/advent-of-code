@@ -1,6 +1,6 @@
 #pragma once
 
-namespace reuk {
+namespace aoc {
 
 template <typename Ts> struct [[nodiscard]] ScopeGuard final
     : Ts{~ScopeGuard() noexcept {Ts::operator()(); }

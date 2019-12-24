@@ -5,7 +5,7 @@
 #include <sstream>
 #include <tuple>
 
-namespace reuk {
+namespace aoc {
 
 struct Coord final {
   int64_t x{}, y{};
@@ -69,4 +69,4 @@ inline auto max(const Coord &a, const Coord &b) {
 
 constexpr auto magSq(const Coord &a) { return a.x * a.x + a.y * a.y; }
 
-} // namespace reuk
+} // namespace aoc

@@ -143,7 +143,7 @@ constexpr auto input = std::array{
     11,    1,     38,    1,     11,    1,     38,    1,     11,    1,     38,
     13,    4};
 
-auto getMap(reuk::Interpreter &comp) {
+auto getMap(aoc::Interpreter &comp) {
   std::string result;
 
   while (auto output = comp.runUntilOutput())
@@ -163,7 +163,7 @@ auto getMapLines(const std::string &str) {
   return result;
 }
 
-auto isScaffold(const std::vector<std::vector<char>> &map, reuk::Coord c) {
+auto isScaffold(const std::vector<std::vector<char>> &map, aoc::Coord c) {
   if (0 <= c.y && c.y < map.size())
     if (0 <= c.x && c.x < map[c.y].size())
       return map[c.y][c.x] == '#';
@@ -176,11 +176,11 @@ auto part1(const std::vector<std::vector<char>> &map) {
 
   for (int64_t i = 0; i != map.size(); ++i) {
     for (int64_t j = 0; j != map[i].size(); ++j) {
-      const auto location = reuk::Coord{j, i};
+      const auto location = aoc::Coord{j, i};
 
       if (isScaffold(map, location) &&
-          3 <= std::count_if(reuk::directions2d.cbegin(),
-                             reuk::directions2d.cend(), [&](auto d) {
+          3 <= std::count_if(aoc::directions2d.cbegin(),
+                             aoc::directions2d.cend(), [&](auto d) {
                                return isScaffold(map, location + toCoord(d));
                              })) {
         result += i * j;
@@ -216,7 +216,7 @@ auto operator<<(std::ostream &os, const Movement &m) -> auto & {
 }
 
 auto findStartingCoord(const std::vector<std::vector<char>> &map)
-    -> reuk::Coord {
+    -> aoc::Coord {
   for (int64_t i = 0; i != map.size(); ++i) {
     for (int64_t j = 0; j != map[i].size(); ++j) {
       const auto c = map[i][j];
@@ -229,8 +229,8 @@ auto findStartingCoord(const std::vector<std::vector<char>> &map)
   return {};
 }
 
-constexpr auto computeTurn(reuk::Direction2d from, reuk::Direction2d to) {
-  switch ((int64_t(to) - int64_t(from)) % reuk::directions2d.size()) {
+constexpr auto computeTurn(aoc::Direction2d from, aoc::Direction2d to) {
+  switch ((int64_t(to) - int64_t(from)) % aoc::directions2d.size()) {
   case 1:
     return Turn::right;
   case 3:
@@ -240,26 +240,26 @@ constexpr auto computeTurn(reuk::Direction2d from, reuk::Direction2d to) {
   throw std::runtime_error{"oh no"};
 }
 
-static_assert(computeTurn(reuk::Direction2d::up, reuk::Direction2d::right) ==
+static_assert(computeTurn(aoc::Direction2d::up, aoc::Direction2d::right) ==
               Turn::right);
-static_assert(computeTurn(reuk::Direction2d::up, reuk::Direction2d::left) ==
+static_assert(computeTurn(aoc::Direction2d::up, aoc::Direction2d::left) ==
               Turn::left);
 
-static_assert(computeTurn(reuk::Direction2d::down, reuk::Direction2d::right) ==
+static_assert(computeTurn(aoc::Direction2d::down, aoc::Direction2d::right) ==
               Turn::left);
-static_assert(computeTurn(reuk::Direction2d::down, reuk::Direction2d::left) ==
+static_assert(computeTurn(aoc::Direction2d::down, aoc::Direction2d::left) ==
               Turn::right);
 
 auto computeMovements(std::vector<std::vector<char>> map) {
   std::vector<Movement> result;
-  auto direction = reuk::Direction2d::up;
+  auto direction = aoc::Direction2d::up;
   auto loc = findStartingCoord(map);
 
   for (;;) {
     if (const auto it = std::find_if(
-            reuk::directions2d.cbegin(), reuk::directions2d.cend(),
+            aoc::directions2d.cbegin(), aoc::directions2d.cend(),
             [&](auto d) { return isScaffold(map, loc + toCoord(d)); });
-        it != reuk::directions2d.cend()) {
+        it != aoc::directions2d.cend()) {
       const auto lastDirection = std::exchange(direction, *it);
       const auto turn = computeTurn(lastDirection, direction);
       const auto increment = toCoord(direction);
@@ -284,7 +284,7 @@ auto computeMovements(std::vector<std::vector<char>> map) {
 }
 
 TEST_CASE("day17") {
-  reuk::Interpreter initial{input};
+  aoc::Interpreter initial{input};
   const auto mapString = getMap(initial);
 
   const auto map = getMapLines(mapString);
@@ -302,7 +302,7 @@ TEST_CASE("day17") {
 
   auto newInput = input;
   newInput[0] = 2;
-  reuk::Interpreter comp{newInput, routines};
+  aoc::Interpreter comp{newInput, routines};
 
   int64_t lastOut{};
 

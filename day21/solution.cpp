@@ -201,7 +201,7 @@ constexpr auto prog = std::array{
     -6,    2105,  1,     0};
 
 template <typename Range> auto runProgram(Range &&input) {
-  reuk::Interpreter comp{prog, input};
+  aoc::Interpreter comp{prog, input};
 
   int64_t lastOut{};
 

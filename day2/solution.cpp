@@ -10,7 +10,7 @@
 namespace {
 
 auto runTest(int noun, int verb) noexcept -> std::optional<int> {
-  auto comp = reuk::Interpreter{std::array{
+  auto comp = aoc::Interpreter{std::array{
       1,  noun, verb, 3,   1, 1,   2,  3,   1, 3,   4,   3,   1, 5,   0,   3,
       2,  1,    6,    19,  2, 19,  6,  23,  1, 23,  5,   27,  1, 9,   27,  31,
       1,  31,   10,   35,  2, 35,  9,  39,  1, 5,   39,  43,  2, 43,  9,   47,

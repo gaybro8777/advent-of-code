@@ -132,7 +132,7 @@ constexpr char input[] = "                               Y       P           J  
     "                                     R     Z     R       G     S   H             I                                 \n";
 
 class Map final {
-  constexpr auto toInd(reuk::Coord c) const noexcept -> std::optional<size_t> {
+  constexpr auto toInd(aoc::Coord c) const noexcept -> std::optional<size_t> {
     const auto result = c.x + width_ * c.y;
 
     if (c.x < 0 || width_ <= c.x || c.y < 0 || storage.size() <= result)
@@ -142,14 +142,14 @@ class Map final {
   }
 
   constexpr auto toCoord(int64_t ind) const noexcept {
-    return reuk::Coord{ind % width_, ind / width_};
+    return aoc::Coord{ind % width_, ind / width_};
   }
 
 public:
   constexpr explicit Map(std::string_view m)
       : storage(m), width_(storage.find('\n') + 1) {}
 
-  constexpr auto get(reuk::Coord c) const noexcept -> std::optional<char> {
+  constexpr auto get(aoc::Coord c) const noexcept -> std::optional<char> {
     if (const auto ind = toInd(c))
       return storage[*ind];
     return {};
@@ -179,7 +179,7 @@ auto operator<<(std::ostream &os, const Portal &p) -> auto & {
   return os << p.first << p.second;
 }
 
-constexpr auto parsePortalTile(const Map &map, reuk::Coord c)
+constexpr auto parsePortalTile(const Map &map, aoc::Coord c)
     -> std::optional<char> {
   if (const auto tile = map.get(c))
     if ('A' <= *tile && *tile <= 'Z')
@@ -188,7 +188,7 @@ constexpr auto parsePortalTile(const Map &map, reuk::Coord c)
   return {};
 }
 
-constexpr auto parsePortalTiles(const Map &map, reuk::Coord a, reuk::Coord b)
+constexpr auto parsePortalTiles(const Map &map, aoc::Coord a, aoc::Coord b)
     -> std::optional<Portal> {
   if (const auto u = parsePortalTile(map, a))
     if (const auto v = parsePortalTile(map, b))
@@ -197,7 +197,7 @@ constexpr auto parsePortalTiles(const Map &map, reuk::Coord a, reuk::Coord b)
   return {};
 }
 
-constexpr auto parsePortal(const Map &map, reuk::Coord c)
+constexpr auto parsePortal(const Map &map, aoc::Coord c)
     -> std::optional<Portal> {
   const auto loc = map.get(c);
 
@@ -205,10 +205,10 @@ constexpr auto parsePortal(const Map &map, reuk::Coord c)
     return {};
 
   for (const auto &[a, b] :
-       std::array{std::tuple{reuk::Coord{-2, 0}, reuk::Coord{-1, 0}},
-                  std::tuple{reuk::Coord{1, 0}, reuk::Coord{2, 0}},
-                  std::tuple{reuk::Coord{0, -2}, reuk::Coord{0, -1}},
-                  std::tuple{reuk::Coord{0, 1}, reuk::Coord{0, 2}}})
+       std::array{std::tuple{aoc::Coord{-2, 0}, aoc::Coord{-1, 0}},
+                  std::tuple{aoc::Coord{1, 0}, aoc::Coord{2, 0}},
+                  std::tuple{aoc::Coord{0, -2}, aoc::Coord{0, -1}},
+                  std::tuple{aoc::Coord{0, 1}, aoc::Coord{0, 2}}})
     if (const auto p = parsePortalTiles(map, c + a, c + b))
       return *p;
 
@@ -216,14 +216,14 @@ constexpr auto parsePortal(const Map &map, reuk::Coord c)
 }
 
 auto parsePortals(const Map &map) {
-  std::map<Portal, std::vector<reuk::Coord>> result;
+  std::map<Portal, std::vector<aoc::Coord>> result;
 
   const auto width = map.width();
   const auto height = map.height();
 
   for (auto x = 0; x != width; ++x) {
     for (auto y = 0; y != height; ++y) {
-      const auto c = reuk::Coord{x, y};
+      const auto c = aoc::Coord{x, y};
       if (const auto p = parsePortal(map, c))
         result[*p].push_back(c);
     }
@@ -233,8 +233,8 @@ auto parsePortals(const Map &map) {
 }
 
 auto getAdjacentTiles(
-    const std::map<Portal, std::vector<reuk::Coord>> &portals) {
-  std::map<reuk::Coord, reuk::Coord> adjacentTiles;
+    const std::map<Portal, std::vector<aoc::Coord>> &portals) {
+  std::map<aoc::Coord, aoc::Coord> adjacentTiles;
 
   for (const auto &[_, coords] : portals) {
     if (coords.size() == 2) {
@@ -247,8 +247,8 @@ auto getAdjacentTiles(
 }
 
 auto getNamedPortals(
-    const std::map<Portal, std::vector<reuk::Coord>> &portals) {
-  std::map<reuk::Coord, Portal> result;
+    const std::map<Portal, std::vector<aoc::Coord>> &portals) {
+  std::map<aoc::Coord, Portal> result;
 
   for (const auto &[name, coords] : portals) {
     for (const auto c : coords) {
@@ -272,22 +272,22 @@ constexpr auto toLevelIncrement(PortalKind k) {
   return 0;
 }
 
-constexpr auto getPortalKind(const Map &m, reuk::Coord c) {
+constexpr auto getPortalKind(const Map &m, aoc::Coord c) {
   if (c.x == 2 || c.x == m.width() - 4 || c.y == 2 || c.y == m.height() - 3)
     return PortalKind::outer;
   return PortalKind::inner;
 }
 
-auto bfs(const Map &map, reuk::Coord pos, reuk::Coord target,
-         const std::map<reuk::Coord, reuk::Coord> &portals) {
+auto bfs(const Map &map, aoc::Coord pos, aoc::Coord target,
+         const std::map<aoc::Coord, aoc::Coord> &portals) {
   struct StepInfo final {
-    reuk::Coord pos;
+    aoc::Coord pos;
     size_t steps{};
   };
 
   std::queue<StepInfo> toTry;
   toTry.push(StepInfo{pos, 0});
-  std::set<reuk::Coord> discovered{pos};
+  std::set<aoc::Coord> discovered{pos};
 
   while (!toTry.empty()) {
     const auto next = toTry.front();
@@ -307,8 +307,8 @@ auto bfs(const Map &map, reuk::Coord pos, reuk::Coord target,
       toTry.push(StepInfo{c, next.steps + 1});
     };
 
-    for (const auto dir : reuk::directions2d)
-      tryNext(next.pos + reuk::toCoord(dir));
+    for (const auto dir : aoc::directions2d)
+      tryNext(next.pos + aoc::toCoord(dir));
 
     if (const auto it = portals.find(next.pos); it != portals.cend())
       tryNext(it->second);
@@ -318,7 +318,7 @@ auto bfs(const Map &map, reuk::Coord pos, reuk::Coord target,
 }
 
 struct RecursiveCoord final {
-  reuk::Coord pos;
+  aoc::Coord pos;
   size_t level{};
 };
 
@@ -339,7 +339,7 @@ auto operator!=(const RecursiveCoord &a, const RecursiveCoord &b) {
 
 auto recursiveBfs(const Map &map, const RecursiveCoord pos,
                   const RecursiveCoord target,
-                  const std::map<reuk::Coord, reuk::Coord> &portals)
+                  const std::map<aoc::Coord, aoc::Coord> &portals)
     -> std::vector<RecursiveCoord> {
   std::queue<RecursiveCoord> toTry;
   toTry.push(pos);
@@ -371,8 +371,8 @@ auto recursiveBfs(const Map &map, const RecursiveCoord pos,
       toTry.push(c);
     };
 
-    for (const auto dir : reuk::directions2d)
-      tryNext(RecursiveCoord{next.pos + reuk::toCoord(dir), next.level});
+    for (const auto dir : aoc::directions2d)
+      tryNext(RecursiveCoord{next.pos + aoc::toCoord(dir), next.level});
 
     if (const auto it = portals.find(next.pos); it != portals.cend()) {
       const auto inc = toLevelIncrement(getPortalKind(map, next.pos));

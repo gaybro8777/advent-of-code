@@ -11,7 +11,7 @@
 namespace {
 
 class Map final {
-  auto toInd(reuk::Coord c) const noexcept -> std::optional<size_t> {
+  auto toInd(aoc::Coord c) const noexcept -> std::optional<size_t> {
     const auto result = c.x + (width_ + 1) * c.y;
 
     if (c.x < 0 || width_ <= c.x || c.y < 0 || storage_.size() <= result)
@@ -21,7 +21,7 @@ class Map final {
   }
 
   auto toCoord(int64_t ind) const noexcept {
-    return reuk::Coord{ind % width_, ind / width_};
+    return aoc::Coord{ind % width_, ind / width_};
   }
 
   auto tie() const noexcept { return std::tie(storage_, width_); }
@@ -29,13 +29,13 @@ class Map final {
 public:
   explicit Map(std::string_view m) : storage_(m), width_(storage_.find('\n')) {}
 
-  auto get(reuk::Coord c) const noexcept -> std::optional<char> {
+  auto get(aoc::Coord c) const noexcept -> std::optional<char> {
     if (const auto ind = toInd(c))
       return storage_[*ind];
     return {};
   }
 
-  auto set(reuk::Coord c, char d) {
+  auto set(aoc::Coord c, char d) {
     if (const auto ind = toInd(c))
       storage_[*ind] = d;
   }
@@ -85,14 +85,14 @@ public:
 
     for (auto x = 0; x != width; ++x) {
       for (auto y = 0; y != height; ++y) {
-        const auto alive = current.get(reuk::Coord{x, y}) == '#';
+        const auto alive = current.get(aoc::Coord{x, y}) == '#';
         const auto adjacent = std::count_if(
-            reuk::directions2d.cbegin(), reuk::directions2d.cend(),
+            aoc::directions2d.cbegin(), aoc::directions2d.cend(),
             [&](auto d) {
-              return current.get(reuk::Coord{x, y} + toCoord(d)) == '#';
+              return current.get(aoc::Coord{x, y} + toCoord(d)) == '#';
             });
 
-        next.set(reuk::Coord{x, y}, [&] {
+        next.set(aoc::Coord{x, y}, [&] {
           if (alive && adjacent != 1)
             return '.';
           if (!alive && 1 <= adjacent && adjacent < 3)
@@ -144,7 +144,7 @@ auto biodiversity(const Map &m) {
 
   for (auto x = 0; x != width; ++x) {
     for (auto y = 0; y != height; ++y) {
-      if (m.get(reuk::Coord{x, y}) == '#')
+      if (m.get(aoc::Coord{x, y}) == '#')
         result += 1 << (x + (y * width));
     }
   }
@@ -169,7 +169,7 @@ constexpr auto test = R"(....#
 //==============================================================================
 
 struct MapIndex final {
-  reuk::Coord pos;
+  aoc::Coord pos;
   int64_t level{};
 };
 
@@ -193,25 +193,25 @@ class MemoizedAdjacentCells final {
 
     std::vector<MapIndex> result;
 
-    for (const auto d : reuk::directions2d) {
+    for (const auto d : aoc::directions2d) {
       const auto newPos = ind.pos + toCoord(d);
 
       if (newPos.x == 0 && newPos.y == 0) {
-        const auto increment = [&]() -> reuk::Coord {
+        const auto increment = [&]() -> aoc::Coord {
           if (ind.pos.y == 0)
             return {0, 1};
           return {1, 0};
         }();
 
-        const auto innerCoord = [&]() -> reuk::Coord {
+        const auto innerCoord = [&]() -> aoc::Coord {
           switch (d) {
-          case reuk::Direction2d::up:
+          case aoc::Direction2d::up:
             return {0, maxCoord};
-          case reuk::Direction2d::down:
+          case aoc::Direction2d::down:
             return {0, minCoord};
-          case reuk::Direction2d::left:
+          case aoc::Direction2d::left:
             return {maxCoord, 0};
-          case reuk::Direction2d::right:
+          case aoc::Direction2d::right:
             return {minCoord, 0};
           }
 
@@ -220,7 +220,7 @@ class MemoizedAdjacentCells final {
 
         for (auto p = minCoord; p <= maxCoord; ++p)
           result.push_back(
-              {innerCoord + increment * reuk::Coord{p, p}, ind.level + 1});
+              {innerCoord + increment * aoc::Coord{p, p}, ind.level + 1});
       } else if (newPos.x < minCoord) {
         result.push_back({{-1, 0}, ind.level - 1});
       } else if (maxCoord < newPos.x) {
@@ -272,7 +272,7 @@ class RecursiveSim final {
 
     for (auto x = 0; x != initial.width(); ++x) {
       for (auto y = 0; y != initial.height(); ++y) {
-        const reuk::Coord offset{x - 2, y - 2};
+        const aoc::Coord offset{x - 2, y - 2};
 
         if (offset.x != 0 || offset.y != 0)
           levels.emplace(MapIndex{offset, 0}, initial.get({x, y}) == '#');

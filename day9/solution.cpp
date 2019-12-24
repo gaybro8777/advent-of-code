@@ -123,7 +123,7 @@ TEST_CASE("day9") {
       0};
 
   const auto runWithInput = [&](int64_t input) {
-    return reuk::Interpreter{prog, std::array{input}}.runUntilOutput();
+    return aoc::Interpreter{prog, std::array{input}}.runUntilOutput();
   };
 
   REQUIRE(runWithInput(1) == 2457252183);

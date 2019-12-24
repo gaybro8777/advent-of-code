@@ -15,7 +15,7 @@ namespace {
 template <typename Program, size_t... Ind>
 auto makeInterpreters(std::index_sequence<Ind...>, Program &&program,
                       const std::array<int, sizeof...(Ind)> &phases) {
-  return std::array{reuk::Interpreter{program, std::array{phases[Ind]}}...};
+  return std::array{aoc::Interpreter{program, std::array{phases[Ind]}}...};
 }
 
 template <typename Program, size_t Num>

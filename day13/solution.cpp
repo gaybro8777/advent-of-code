@@ -31,7 +31,7 @@ struct Score final {
 
 using Output = std::variant<std::monostate, ScreenUpdate, Score>;
 
-auto getNextOutput(reuk::Interpreter &i, const std::vector<int64_t> &ins = {})
+auto getNextOutput(aoc::Interpreter &i, const std::vector<int64_t> &ins = {})
     -> Output {
   i.queueInputs(ins);
   const auto x = i.runUntilOutput();
@@ -287,7 +287,7 @@ constexpr auto input = std::array{
 
 auto getScreenUpdate(const Output &output) {
   return std::visit(
-      reuk::Overloaded{
+      aoc::Overloaded{
           [](const ScreenUpdate &su) -> std::optional<ScreenUpdate> {
             return su;
           },
@@ -296,11 +296,11 @@ auto getScreenUpdate(const Output &output) {
 }
 
 auto countBlocks() {
-  auto comp = reuk::Interpreter{input};
-  std::map<reuk::Coord, Tile> screen;
+  auto comp = aoc::Interpreter{input};
+  std::map<aoc::Coord, Tile> screen;
 
   while (auto out = getScreenUpdate(getNextOutput(comp)))
-    screen.emplace(reuk::Coord{out->x, out->y}, out->tile);
+    screen.emplace(aoc::Coord{out->x, out->y}, out->tile);
 
   return std::count_if(screen.cbegin(), screen.cend(),
                        [](const auto &it) { return it.second == Tile::block; });
@@ -323,14 +323,14 @@ char toChar(Tile t) {
   return ' ';
 }
 
-auto getCharAt(const std::map<reuk::Coord, Tile> &s, reuk::Coord c) {
+auto getCharAt(const std::map<aoc::Coord, Tile> &s, aoc::Coord c) {
   if (const auto it = s.find(c); it != s.cend())
     return toChar(it->second);
 
   return ' ';
 }
 
-auto drawScreen(const std::map<reuk::Coord, Tile> &s) {
+auto drawScreen(const std::map<aoc::Coord, Tile> &s) {
   constexpr auto width = 37;
   constexpr auto height = 23;
 
@@ -346,18 +346,18 @@ auto drawScreen(const std::map<reuk::Coord, Tile> &s) {
 auto play() {
   auto prog = input;
   prog[0] = 2;
-  auto comp = reuk::Interpreter{prog};
+  auto comp = aoc::Interpreter{prog};
 
-  std::map<reuk::Coord, Tile> screen;
+  std::map<aoc::Coord, Tile> screen;
   int64_t score{};
   int64_t paddlePos{};
   int64_t ballPos{};
   std::vector<int64_t> nextInput;
 
   while (std::visit(
-      reuk::Overloaded{
+      aoc::Overloaded{
           [&](const ScreenUpdate &su) {
-            screen.insert_or_assign(reuk::Coord{su.x, su.y}, su.tile);
+            screen.insert_or_assign(aoc::Coord{su.x, su.y}, su.tile);
 
             auto ballPosChanged = false;
 

@@ -17,7 +17,7 @@ namespace {
 constexpr auto isKey(char c) { return 'a' <= c && c <= 'z'; }
 
 class Map final {
-  auto toInd(reuk::Coord c) const noexcept -> std::optional<size_t> {
+  auto toInd(aoc::Coord c) const noexcept -> std::optional<size_t> {
     const auto result = c.x + width * c.y;
 
     if (c.x < 0 || width <= c.x || c.y < 0 || storage.size() <= result)
@@ -27,14 +27,14 @@ class Map final {
   }
 
   auto toCoord(int64_t ind) const noexcept {
-    return reuk::Coord{ind % width, ind / width};
+    return aoc::Coord{ind % width, ind / width};
   }
 
 public:
   explicit Map(std::string_view m)
       : storage(m), width(storage.find('\n') + 1) {}
 
-  auto get(reuk::Coord c) const noexcept -> std::optional<char> {
+  auto get(aoc::Coord c) const noexcept -> std::optional<char> {
     if (const auto ind = toInd(c))
       return storage[*ind];
     return {};
@@ -116,9 +116,9 @@ auto operator<(const RequiredKeysAndDistance &a,
   return a.distance < b.distance;
 }
 
-auto computeRequiredKeysAndDistance(const Map &map, reuk::Coord start,
+auto computeRequiredKeysAndDistance(const Map &map, aoc::Coord start,
                                     size_t steps,
-                                    std::set<reuk::Coord> &visited,
+                                    std::set<aoc::Coord> &visited,
                                     std::set<char> &heldKeys)
     -> std::map<char, RequiredKeysAndDistance> {
   if (visited.find(start) != visited.cend())
@@ -142,12 +142,12 @@ auto computeRequiredKeysAndDistance(const Map &map, reuk::Coord start,
   withLock([&](auto key) { heldKeys.insert(key); });
   visited.insert(start);
 
-  const reuk::ScopeGuard scope{[&] {
+  const aoc::ScopeGuard scope{[&] {
     withLock([&](auto key) { heldKeys.erase(key); });
     visited.erase(start);
   }};
 
-  for (const auto d : reuk::directions2d) {
+  for (const auto d : aoc::directions2d) {
     const auto out = computeRequiredKeysAndDistance(
         map, start + toCoord(d), steps + 1, visited, heldKeys);
 
@@ -197,7 +197,7 @@ public:
 
 private:
   void addToMemory(const Map &map, char start) {
-    std::set<reuk::Coord> visitedPos;
+    std::set<aoc::Coord> visitedPos;
     std::set<char> visitedKeys;
     for (const auto &[dest, info] : computeRequiredKeysAndDistance(
              map, map.get(start), 0, visitedPos, visitedKeys)) {

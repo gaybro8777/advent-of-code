@@ -1,6 +1,6 @@
 #include "intcode.hpp"
 
-namespace reuk {
+namespace aoc {
 
 template <size_t Params> auto Interpreter::parseModes(int64_t value) {
   value /= 100;
@@ -122,4 +122,4 @@ auto Interpreter::runUntilOutput() -> std::optional<int64_t> {
       return *result;
 }
 
-} // namespace reuk
+} // namespace aoc

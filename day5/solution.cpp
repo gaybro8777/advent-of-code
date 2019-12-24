@@ -73,7 +73,7 @@ TEST_CASE("day5") {
       223,   1,    223,   4,     223,   99,    226};
 
   const auto runUntilOutput = [&](auto in) {
-    auto comp = reuk::Interpreter{input, std::array{in}};
+    auto comp = aoc::Interpreter{input, std::array{in}};
 
     std::optional<int64_t> lastValidOutput, thisOutput;
 

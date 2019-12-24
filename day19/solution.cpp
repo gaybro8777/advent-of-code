@@ -53,7 +53,7 @@ TEST_CASE("day19") {
       -5,    2105,  1,     0};
 
   const auto compute = [&](auto c) {
-    return reuk::Interpreter{input, std::array{c.x, c.y}}.runUntilOutput();
+    return aoc::Interpreter{input, std::array{c.x, c.y}}.runUntilOutput();
   };
 
   const auto affected = [&] {
@@ -61,7 +61,7 @@ TEST_CASE("day19") {
 
     for (auto x = 0; x != 50; ++x) {
       for (auto y = 0; y != 50; ++y) {
-        if (const auto result = compute(reuk::Coord{x, y}))
+        if (const auto result = compute(aoc::Coord{x, y}))
           ret += *result;
       }
     }
@@ -72,14 +72,14 @@ TEST_CASE("day19") {
   REQUIRE(affected == 131);
 
   const auto closest = [&] {
-    for (reuk::Coord current{99, 0};; current.x += 1) {
+    for (aoc::Coord current{99, 0};; current.x += 1) {
       while (compute(current) != 1)
         current.y += 1;
 
-      if (compute(current + reuk::Coord{-99, 99}) == 1)
-        return current + reuk::Coord{-99, 0};
+      if (compute(current + aoc::Coord{-99, 99}) == 1)
+        return current + aoc::Coord{-99, 0};
     }
   }();
 
-  REQUIRE(closest == reuk::Coord{1523, 1022});
+  REQUIRE(closest == aoc::Coord{1523, 1022});
 }

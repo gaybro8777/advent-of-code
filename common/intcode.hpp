@@ -7,7 +7,7 @@
 #include <optional>
 #include <variant>
 
-namespace reuk {
+namespace aoc {
 
 template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
 template <class... Ts> Overloaded(Ts...)->Overloaded<Ts...>;
@@ -54,4 +54,4 @@ private:
   int64_t relativeBase{};
 };
 
-} // namespace reuk
+} // namespace aoc
