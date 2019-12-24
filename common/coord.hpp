@@ -48,6 +48,17 @@ constexpr auto operator-(const Coord &a, const Coord &b) {
   return copy -= b;
 }
 
+constexpr auto operator*=(Coord &a, const Coord &b) -> auto & {
+  a.x *= b.x;
+  a.y *= b.y;
+  return a;
+}
+
+constexpr auto operator*(const Coord &a, const Coord &b) {
+  auto copy{a};
+  return copy *= b;
+}
+
 inline auto min(const Coord &a, const Coord &b) {
   return Coord{std::min(a.x, b.x), std::min(a.y, b.y)};
 }
