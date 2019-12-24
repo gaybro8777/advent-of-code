@@ -26,4 +26,5 @@ target_link_libraries(driver PRIVATE
     day20
     day21
     day22
-    day23)
+    day23
+    day24)
