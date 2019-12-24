@@ -186,55 +186,68 @@ auto operator<<(std::ostream &os, const MapIndex &mi) -> auto & {
   return os << mi.pos << ' ' << mi.level;
 }
 
-auto computeAdjacentCells(const MapIndex &ind) {
-  constexpr auto minCoord = -2;
-  constexpr auto maxCoord = 2;
+class MemoizedAdjacentCells final {
+  static auto computeAdjacentCells(const MapIndex &ind) {
+    constexpr auto minCoord = -2;
+    constexpr auto maxCoord = 2;
 
-  std::vector<MapIndex> result;
+    std::vector<MapIndex> result;
 
-  for (const auto d : reuk::directions2d) {
-    const auto newPos = ind.pos + toCoord(d);
+    for (const auto d : reuk::directions2d) {
+      const auto newPos = ind.pos + toCoord(d);
 
-    if (newPos.x == 0 && newPos.y == 0) {
-      const auto increment = [&]() -> reuk::Coord {
-        if (ind.pos.y == 0)
-          return {0, 1};
-        return {1, 0};
-      }();
+      if (newPos.x == 0 && newPos.y == 0) {
+        const auto increment = [&]() -> reuk::Coord {
+          if (ind.pos.y == 0)
+            return {0, 1};
+          return {1, 0};
+        }();
 
-      const auto innerCoord = [&]() -> reuk::Coord {
-        switch (d) {
-        case reuk::Direction2d::up:
-          return {0, maxCoord};
-        case reuk::Direction2d::down:
-          return {0, minCoord};
-        case reuk::Direction2d::left:
-          return {maxCoord, 0};
-        case reuk::Direction2d::right:
-          return {minCoord, 0};
-        }
+        const auto innerCoord = [&]() -> reuk::Coord {
+          switch (d) {
+          case reuk::Direction2d::up:
+            return {0, maxCoord};
+          case reuk::Direction2d::down:
+            return {0, minCoord};
+          case reuk::Direction2d::left:
+            return {maxCoord, 0};
+          case reuk::Direction2d::right:
+            return {minCoord, 0};
+          }
 
-        return {};
-      }();
+          return {};
+        }();
 
-      for (auto p = minCoord; p <= maxCoord; ++p)
-        result.push_back(
-            {innerCoord + increment * reuk::Coord{p, p}, ind.level + 1});
-    } else if (newPos.x < minCoord) {
-      result.push_back({{-1, 0}, ind.level - 1});
-    } else if (maxCoord < newPos.x) {
-      result.push_back({{1, 0}, ind.level - 1});
-    } else if (newPos.y < minCoord) {
-      result.push_back({{0, -1}, ind.level - 1});
-    } else if (maxCoord < newPos.y) {
-      result.push_back({{0, 1}, ind.level - 1});
-    } else {
-      result.push_back({ind.pos + toCoord(d), ind.level});
+        for (auto p = minCoord; p <= maxCoord; ++p)
+          result.push_back(
+              {innerCoord + increment * reuk::Coord{p, p}, ind.level + 1});
+      } else if (newPos.x < minCoord) {
+        result.push_back({{-1, 0}, ind.level - 1});
+      } else if (maxCoord < newPos.x) {
+        result.push_back({{1, 0}, ind.level - 1});
+      } else if (newPos.y < minCoord) {
+        result.push_back({{0, -1}, ind.level - 1});
+      } else if (maxCoord < newPos.y) {
+        result.push_back({{0, 1}, ind.level - 1});
+      } else {
+        result.push_back({ind.pos + toCoord(d), ind.level});
+      }
     }
+
+    return result;
   }
 
-  return result;
-}
+public:
+  auto compute(const MapIndex &ind) {
+    if (const auto it = cache_.find(ind); it != cache_.cend())
+      return it->second;
+
+    return cache_[ind] = computeAdjacentCells(ind);
+  }
+
+private:
+  std::map<MapIndex, std::vector<MapIndex>> cache_;
+};
 
 class RecursiveSim final {
   auto getAlive(const MapIndex &d) {
@@ -243,11 +256,11 @@ class RecursiveSim final {
     return false;
   }
 
-  auto getTilesToUpdate() const {
+  auto getTilesToUpdate() {
     std::set<MapIndex> result;
 
     for (const auto &[pos, _] : current) {
-      const auto adjacentCells = computeAdjacentCells(pos);
+      const auto adjacentCells = adjacent.compute(pos);
       result.insert(adjacentCells.cbegin(), adjacentCells.cend());
     }
 
@@ -274,9 +287,8 @@ public:
   explicit RecursiveSim(Range &&input) : initial{input}, current{buildMap()} {}
 
   auto step() {
-    const auto toUpdate = getTilesToUpdate();
-    for (const auto &pos : toUpdate) {
-      const auto adjacentCells = computeAdjacentCells(pos);
+    for (const auto &pos : getTilesToUpdate()) {
+      const auto adjacentCells = adjacent.compute(pos);
       const auto adjacent =
           std::count_if(adjacentCells.cbegin(), adjacentCells.cend(),
                         [&](const auto d) { return getAlive(d); });
@@ -303,6 +315,7 @@ public:
 private:
   const Map initial;
   std::map<MapIndex, bool> current, next;
+  MemoizedAdjacentCells adjacent;
 };
 
 } // namespace
