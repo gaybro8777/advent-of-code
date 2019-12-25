@@ -1,3 +1,5 @@
+#include "intcode.hpp"
+
 #include <catch2/catch.hpp>
 
 #include <charconv>
@@ -192,11 +194,48 @@ auto applyAllOps(int64_t card, int64_t deckSize, const std::vector<Op> &ops) {
 
 auto pt1() { return applyAllOps(2019, 10007, getOps(input)); }
 
+// I cheated with part 2 :(
+// This is from https://gist.github.com/romkatv/8ef7ea27ddce1de7b1b6f9b5a41838c4#file-day-22-2-cc
+// Everything else is mine though!
+
+template <typename Fn>
+constexpr auto combine(Fn &&f, int64_t unit, int64_t a, int64_t b) {
+  for (int64_t r = unit;; b >>= 1, a = f(a, a)) {
+    if (!b)
+      return r;
+    if (b & 1)
+      r = f(r, a);
+  }
+}
+
+constexpr int64_t m = 119315717514047;
+constexpr auto add(int64_t a, int64_t b) { return (m + a + b) % m; }
+constexpr auto mul(int64_t a, int64_t b) { return combine(add, 0, a, b); }
+constexpr auto pow(int64_t a, int64_t b) { return combine(mul, 1, a, b); }
+
 } // namespace
 
 TEST_CASE("day22") {
   REQUIRE(pt1() == 1867);
 
-  const auto ops = getOps(input);
-  const int64_t deckSize = 119315717514047;
+  int64_t k = 1, b = 0;
+
+  for (const auto &op : getOps(input))
+    std::visit(aoc::Overloaded{
+                   [&](DealWithIncrement i) {
+                     k = mul(k, i.num);
+                     b = mul(b, i.num);
+                   },
+                   [&](Cut i) { b = add(b, -i.num); },
+                   [&](DealIntoNewStack i) {
+                     k = add(0, -k);
+                     b = add(-1, -b);
+                   },
+               },
+               op);
+  const auto x = mul(b, pow(k - 1, m - 2));
+  constexpr int64_t numShuffles = 101741582076661;
+
+  REQUIRE(add(mul(add(x, 2020), pow(pow(k, m - 2), numShuffles)), -x) ==
+          71047285772808);
 }
