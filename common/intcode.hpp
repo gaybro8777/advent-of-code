@@ -6,6 +6,7 @@
 #include <deque>
 #include <optional>
 #include <variant>
+#include <vector>
 
 namespace aoc {
 
@@ -20,15 +21,17 @@ public:
         inputs(std::begin(ins), std::end(ins)) {}
 
   struct Ongoing final {};
-  struct Failure final {};
+  struct BadInstruction final {};
+  struct NoInput final {};
   struct Success final {
     int64_t value{};
   };
 
-  using StepResult = std::variant<Ongoing, Failure, Success>;
+  using StepResult = std::variant<Ongoing, BadInstruction, NoInput, Success>;
 
   auto step() -> StepResult;
   auto runUntilOutput() -> std::optional<int64_t>;
+  auto runUntilNoInput() -> std::vector<int64_t>;
 
   template <typename Inputs> auto queueInputs(Inputs &&in) {
     using std::begin, std::end;

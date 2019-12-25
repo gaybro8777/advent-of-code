@@ -34,6 +34,10 @@ auto part1() {
                     network[addr].queueInputs(std::array{*x, *y});
                     return {};
                   },
+                  [&](aoc::Interpreter::NoInput) -> std::optional<int64_t> {
+                    comp.queueInputs(std::array{-1});
+                    return {};
+                  },
                   [](auto) -> std::optional<int64_t> { return {}; },
               },
               comp.step()))
@@ -66,6 +70,10 @@ auto part2() {
                        }
 
                        network[addr].queueInputs(std::array{*x, *y});
+                     },
+                     [&](aoc::Interpreter::NoInput) {
+                       comp.queueInputs(std::array{-1});
+                       idleTimer += 1;
                      },
                      [&](auto) { idleTimer += 1; },
                  },

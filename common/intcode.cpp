@@ -55,11 +55,11 @@ auto Interpreter::step() -> StepResult {
     break;
   }
   case 3: {
+    if (inputs.empty())
+      return NoInput{};
+
     auto params = readParams<1>();
     params[0].get() = [&]() -> int64_t {
-      if (inputs.empty())
-        return -1;
-
       const auto result = inputs.front();
       inputs.pop_front();
       return result;
@@ -100,7 +100,7 @@ auto Interpreter::step() -> StepResult {
   case 99:
     [[fallthrough]];
   default:
-    return Failure{};
+    return BadInstruction{};
   }
 
   return Ongoing{};
@@ -110,16 +110,38 @@ auto Interpreter::runUntilOutput() -> std::optional<int64_t> {
   using OptOpt = std::optional<std::optional<int64_t>>;
 
   for (;;)
-    if (const auto result = std::visit(
-            Overloaded{
-                [](Ongoing) -> OptOpt { return {}; },
-                [](Failure) -> OptOpt { return std::optional<int64_t>{}; },
-                [](Success s) -> OptOpt {
-                  return std::optional<int64_t>{s.value};
-                },
-            },
-            step()))
+    if (const auto result =
+            std::visit(Overloaded{
+                           [](Ongoing) -> OptOpt { return {}; },
+                           [](NoInput) -> OptOpt { return {}; },
+                           [](BadInstruction) -> OptOpt {
+                             return std::optional<int64_t>{};
+                           },
+                           [](Success s) -> OptOpt {
+                             return std::optional<int64_t>{s.value};
+                           },
+                       },
+                       step()))
       return *result;
+}
+
+auto Interpreter::runUntilNoInput() -> std::vector<int64_t> {
+  std::vector<int64_t> result;
+
+  for (;;)
+    if (std::visit(Overloaded{
+                       [](Ongoing) { return false; },
+                       [](NoInput) { return true; },
+                       [](BadInstruction) { return true; },
+                       [&](Success s) {
+                         result.push_back(s.value);
+                         return false;
+                       },
+                   },
+                   step()))
+      break;
+
+  return result;
 }
 
 } // namespace aoc
