@@ -1,5 +1,4 @@
-*/.stack-work
-*/a.out*
+**/.stack-work
 build*
 cmake-build*
 .idea
