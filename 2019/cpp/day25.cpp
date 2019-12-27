@@ -95,8 +95,10 @@ auto bfs() {
     if (lastOutput.empty())
       continue;
 
-    if (outputs.insert(lastOutput).second)
+    if (lastOutput.find("Analysis complete") != std::string::npos) {
       std::cout << lastOutput << '\n';
+      return;
+    }
 
     const auto roomNamePos = lastOutput.find("==") + 3;
     const auto nameEndPos = lastOutput.find("==", roomNamePos);
