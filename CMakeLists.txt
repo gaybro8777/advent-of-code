@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.17)
 
 set(HUNTER_PACKAGES Catch)
 include(FetchContent)
@@ -12,3 +12,4 @@ find_package(Catch2 CONFIG REQUIRED)
 add_subdirectory(common)
 
 add_subdirectory(2019)
+add_subdirectory(2020)
