@@ -38,9 +38,6 @@ TEST_CASE("day1") {
     return {};
   }();
 
-  if (result.has_value())
-    std::cout << *result << '\n';
-
   auto const another = [&]() -> std::optional<int> {
     for (auto const &a : input)
       for (auto const &b : input)
@@ -51,7 +48,4 @@ TEST_CASE("day1") {
 
     return {};
   }();
-
-  if (another.has_value())
-    std::cout << *another << '\n';
 }
