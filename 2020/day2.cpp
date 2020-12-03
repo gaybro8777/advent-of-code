@@ -4,6 +4,8 @@
 #include <regex>
 #include <sstream>
 
+namespace {
+
 auto constexpr test_input = R"(1-3 a: abcde
 1-3 b: cdefg
 2-9 c: ccccccccc
@@ -1033,6 +1035,8 @@ std::istream &operator>>(std::istream &is, Line &l) {
   return is;
 }
 
+} // namespace
+
 TEST_CASE("day2") {
   std::istringstream ss(input);
   std::vector const lines(std::istream_iterator<Line>{ss},
@@ -1048,6 +1052,4 @@ TEST_CASE("day2") {
     auto const upper = l.pwd[l.upper - 1] == l.letter;
     return lower != upper;
   });
-
-  std::cout << a << ' ' << b << '\n';
 }
