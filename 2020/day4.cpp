@@ -1016,7 +1016,7 @@ std::istream &operator>>(std::istream &is, Passport &p) {
 }
 
 auto is_valid(Passport const &p) {
-  std::vector<std::tuple<std::string, bool (*)(std::string const &)>> checks{
+  std::tuple<char const *, bool (*)(std::string const &)> constexpr checks[]{
       {"byr",
        [](auto const &it) {
          auto const value = std::stoi(it);
@@ -1064,14 +1064,15 @@ auto is_valid(Passport const &p) {
        }},
   };
 
-  return std::all_of(checks.cbegin(), checks.cend(), [&](auto const &tup) {
-    auto const &[key, value] = tup;
+  return std::all_of(std::begin(checks), std::end(checks),
+                     [&](auto const &tup) {
+                       auto const &[key, value] = tup;
 
-    if (auto const it = p.get(key))
-      return value(*it);
+                       if (auto const it = p.get(key))
+                         return value(*it);
 
-    return false;
-  });
+                       return false;
+                     });
 }
 
 } // namespace
