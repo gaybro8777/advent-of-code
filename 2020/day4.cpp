@@ -1016,64 +1016,62 @@ std::istream &operator>>(std::istream &is, Passport &p) {
 }
 
 auto is_valid(Passport const &p) {
-  return [&] {
-    if (auto const it = p.get("byr")) {
-      auto const value = std::stoi(*it);
-      return 1920 <= value && value <= 2002;
-    }
+  std::vector<std::tuple<std::string, bool (*)(std::string const &)>> checks{
+      {"byr",
+       [](auto const &it) {
+         auto const value = std::stoi(it);
+         return 1920 <= value && value <= 2002;
+       }},
+      {"iyr",
+       [](auto const &it) {
+         auto const value = std::stoi(it);
+         return 2010 <= value && value <= 2020;
+       }},
+      {"eyr",
+       [](auto const &it) {
+         auto const value = std::stoi(it);
+         return 2020 <= value && value <= 2030;
+       }},
+      {"hgt",
+       [](auto const &it) {
+         if (std::smatch m;
+             std::regex_match(it, m, std::regex{R"(([0-9]+)(cm|in))"})) {
+           auto const value = std::stoi(m[1]);
+
+           if (m[2] == "cm")
+             return 150 <= value && value <= 193;
+
+           return 59 <= value && value <= 76;
+         }
+
+         return false;
+       }},
+      {"hcl",
+       [](auto const &it) {
+         std::smatch m;
+         return std::regex_match(it, m, std::regex{R"(#[0-9a-fA-F]{6})"});
+       }},
+      {"ecl",
+       [](auto const &it) {
+         std::set<std::string> const colours{"amb", "blu", "brn", "gry",
+                                             "grn", "hzl", "oth"};
+         return colours.find(it) != colours.cend();
+       }},
+      {"pid",
+       [](auto const &it) {
+         std::smatch m;
+         return std::regex_match(it, m, std::regex{R"([0-9]{9})"});
+       }},
+  };
+
+  return std::all_of(checks.cbegin(), checks.cend(), [&](auto const &tup) {
+    auto const &[key, value] = tup;
+
+    if (auto const it = p.get(key))
+      return value(*it);
 
     return false;
-  }() && [&] {
-    if (auto const it = p.get("iyr")) {
-      auto const value = std::stoi(*it);
-      return 2010 <= value && value <= 2020;
-    }
-
-    return false;
-  }() && [&] {
-    if (auto const it = p.get("eyr")) {
-      auto const value = std::stoi(*it);
-      return 2020 <= value && value <= 2030;
-    }
-
-    return false;
-  }() && [&] {
-    if (auto const it = p.get("hgt")) {
-      if (std::smatch m;
-          std::regex_match(*it, m, std::regex{R"(([0-9]+)(cm|in))"})) {
-        auto const value = std::stoi(m[1]);
-
-        if (m[2] == "cm")
-          return 150 <= value && value <= 193;
-
-        return 59 <= value && value <= 76;
-      }
-    }
-
-    return false;
-  }() && [&] {
-    if (auto const it = p.get("hcl")) {
-      std::smatch m;
-      return std::regex_match(*it, m, std::regex{R"(#[0-9a-fA-F]{6})"});
-    }
-
-    return false;
-  }() && [&] {
-    if (auto const it = p.get("ecl")) {
-      std::set<std::string> const colours{"amb", "blu", "brn", "gry",
-                                          "grn", "hzl", "oth"};
-      return colours.find(*it) != colours.cend();
-    }
-
-    return false;
-  }() && [&] {
-    if (auto const it = p.get("pid")) {
-      std::smatch m;
-      return std::regex_match(*it, m, std::regex{R"([0-9]{9})"});
-    }
-
-    return false;
-  }();
+  });
 }
 
 } // namespace
