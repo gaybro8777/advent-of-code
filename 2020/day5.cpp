@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 
+#include <charconv>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -779,33 +780,50 @@ FFBBBFBRLR
 FFBBFBBRLR
 )";
 
-auto get_id(std::string const &seat) {
-  auto copy = seat;
-
-  for (auto &c : copy)
+auto get_id(std::string seat) {
+  for (auto &c : seat)
     c = (c == 'B' || c == 'R') ? '1' : '0';
 
-  return std::stoi(copy, nullptr, 2);
+  int result{};
+  auto const r =
+      std::from_chars(seat.data(), seat.data() + seat.size(), result, 2);
+
+  return r.ec == std::errc{} ? result : 0;
 }
 } // namespace
 
 TEST_CASE("day5") {
+  auto const begin = std::chrono::steady_clock::now();
+
   std::istringstream is{input};
   std::vector const lines(std::istream_iterator<std::string>{is},
                           std::istream_iterator<std::string>{});
 
-  auto const a = std::accumulate(
-      lines.cbegin(), lines.cend(), 0,
-      [](auto acc, auto const &in) { return std::max(acc, get_id(in)); });
+  auto const seats = [&] {
+    std::vector<int> result;
+    result.reserve(lines.size());
+
+    std::transform(lines.begin(), lines.end(), std::back_inserter(result),
+                   get_id);
+    std::sort(result.begin(), result.end());
+
+    return result;
+  }();
+
+  auto const a = seats.back();
 
   auto const b = [&] {
-    std::set<int> found;
-
-    for (auto const &line : lines)
-      found.insert(get_id(line));
-
-    for (auto i = *found.begin();; ++i)
-      if (found.find(i) == found.cend())
-        return i;
+    auto const it =
+        std::adjacent_find(seats.begin(), seats.end(),
+                           [](auto u, auto v) { return (v - u) != 1; });
+    return *it + 1;
   }();
+
+  std::cout << a << ' ' << b << '\n';
+  auto const end = std::chrono::steady_clock::now();
+
+  std::cout << std::chrono::duration_cast<std::chrono::microseconds>(
+                   (end - begin))
+                   .count()
+            << " us\n";
 }
