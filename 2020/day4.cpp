@@ -1092,6 +1092,4 @@ TEST_CASE("day4") {
       });
 
   auto const b = std::count_if(passports.cbegin(), passports.cend(), is_valid);
-
-  std::cout << b << '\n';
 }
