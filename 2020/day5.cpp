@@ -819,11 +819,9 @@ TEST_CASE("day5") {
     return *it + 1;
   }();
 
-  std::cout << a << ' ' << b << '\n';
   auto const end = std::chrono::steady_clock::now();
 
-  std::cout << std::chrono::duration_cast<std::chrono::microseconds>(
-                   (end - begin))
-                   .count()
-            << " us\n";
+  auto const duration =
+      std::chrono::duration_cast<std::chrono::microseconds>((end - begin))
+          .count();
 }
