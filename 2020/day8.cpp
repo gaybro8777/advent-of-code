@@ -661,20 +661,20 @@ struct State {
   int ip{};
 };
 
-std::optional<State> constexpr run_step(
-    std::span<Instruction const> instructions, State state) noexcept {
+State constexpr run_step(std::span<Instruction const> instructions,
+                         State state) noexcept {
   switch (auto const instruction = instructions[state.ip]; instruction.op) {
   case Op::nop:
-    return State{state.acc, state.ip + 1};
+    return {state.acc, state.ip + 1};
 
   case Op::acc:
-    return State{state.acc + instruction.arg, state.ip + 1};
+    return {state.acc + instruction.arg, state.ip + 1};
 
   case Op::jmp:
-    return State{state.acc, state.ip + instruction.arg};
+    return {state.acc, state.ip + instruction.arg};
   }
 
-  return {};
+  return state;
 }
 
 enum class Exits { no, yes };
@@ -694,13 +694,7 @@ Result run(std::span<Instruction const> instructions) {
       return {Exits::no, state.acc};
 
     visited[state.ip] = 1;
-
-    auto const new_state = run_step(instructions, state);
-
-    if (!new_state.has_value())
-      return {Exits::yes, state.acc};
-
-    state = *new_state;
+    state = run_step(instructions, state);
   }
 }
 
