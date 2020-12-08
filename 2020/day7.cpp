@@ -720,6 +720,4 @@ TEST_CASE("day7") {
 
     return count_contents(containers, root);
   }();
-
-  std::cout << a << ' ' << b << '\n';
 }
