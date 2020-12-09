@@ -722,6 +722,4 @@ TEST_CASE("day8") {
 
     return 0;
   }();
-
-  std::cout << a << ' ' << b << '\n';
 }
