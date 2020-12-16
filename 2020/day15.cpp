@@ -32,8 +32,8 @@ auto play(std::span<size_t const> input, size_t steps) {
 TEST_CASE("day15") {
   size_t constexpr input[]{2, 15, 0, 9, 1, 20};
 
+#if 0
   auto const a = play(input, 2020);
   auto const b = play(input, 30000000);
-
-  std::cout << a << ' ' << b << '\n';
+#endif
 }
