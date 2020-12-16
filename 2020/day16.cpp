@@ -275,7 +275,7 @@ auto constexpr nearby_in =
 )";
 
 struct Range {
-  int lo{}, hi{};
+  uint64_t lo{}, hi{};
 };
 
 auto tie(Range const &r) { return std::tie(r.lo, r.hi); }
@@ -290,7 +290,7 @@ auto tie(Field const &r) { return std::tie(r.name, r.a, r.b); }
 auto operator<(Field const &a, Field const &b) { return tie(a) < tie(b); }
 
 struct Ticket {
-  std::vector<int> values;
+  std::vector<uint64_t> values;
 };
 
 std::istream &operator>>(std::istream &is, Field &field) {
@@ -301,8 +301,8 @@ std::istream &operator>>(std::istream &is, Field &field) {
           line, m,
           std::regex{R"(([^:]*): ([0-9]+)-([0-9]+) or ([0-9]+)-([0-9]+))"})) {
     field = {m[1],
-             {std::stoi(m[2]), std::stoi(m[3])},
-             {std::stoi(m[4]), std::stoi(m[5])}};
+             {uint64_t(std::stoi(m[2])), uint64_t(std::stoi(m[3]))},
+             {uint64_t(std::stoi(m[4])), uint64_t(std::stoi(m[5]))}};
   }
 
   return is;
@@ -327,38 +327,35 @@ std::istream &operator>>(std::istream &is, Ticket &t) {
   return is;
 }
 
-bool constexpr contains(Range const &r, int n) {
+bool constexpr contains(Range const &r, uint64_t n) {
   return r.lo <= n && n <= r.hi;
 }
 
-bool constexpr contains(Field const &f, int n) {
+bool constexpr contains(Field const &f, uint64_t n) {
   return contains(f.a, n) || contains(f.b, n);
 }
 
-std::optional<std::vector<Field>>
-find_fields(std::vector<std::set<Field>> valid, size_t index) {
-  std::cout << index << std::endl;
+std::vector<std::optional<Field>>
+find_fields(std::vector<std::set<Field>> fields) {
+  std::vector<std::optional<Field>> result(fields.size());
 
-  if (index == valid.size())
-    return std::vector<Field>{};
+  while (!std::all_of(result.cbegin(), result.cend(),
+                      [](auto const &i) { return i.has_value(); })) {
+    for (size_t i = 0; i != fields.size(); ++i) {
+      if (fields[i].size() != 1)
+        continue;
 
-  if (valid[index].empty())
-    return {};
+      auto const to_remove = *fields[i].begin();
+      result[i] = to_remove;
 
-  for (auto const &field : valid[index]) {
-    auto copy = valid;
+      for (auto &field : fields)
+        field.erase(to_remove);
 
-    for (auto &set : copy)
-      set.erase(field);
-
-    if (auto const out = find_fields(std::move(copy), index + 1)) {
-      auto modified = *out;
-      modified.insert(modified.cbegin(), field);
-      return modified;
+      break;
     }
   }
 
-  return {};
+  return result;
 }
 } // namespace
 
@@ -382,7 +379,7 @@ TEST_CASE("day16") {
   }();
 
   auto const a = [&] {
-    int sum = 0;
+    uint64_t sum = 0;
 
     for (auto const &t : nearby) {
       for (auto const &f : t.values) {
@@ -430,10 +427,25 @@ TEST_CASE("day16") {
       potential_fields.push_back(potential);
     }
 
-    auto const maybe = find_fields(potential_fields, 0);
+    auto const my_ticket = [&] {
+      std::istringstream is{mine_in};
 
-    return maybe.has_value();
+      Ticket t;
+      is >> t;
+      return t;
+    }();
+
+    auto const maybe = find_fields(potential_fields);
+
+    uint64_t acc = 1;
+
+    for (size_t i = 0; i != maybe.size(); ++i) {
+      auto const &field = maybe[i];
+
+      if (field.has_value() && field->name.find("departure") == 0)
+        acc *= my_ticket.values[i];
+    }
+
+    return acc;
   }();
-
-  std::cout << a << ' ' << b << '\n';
 }
