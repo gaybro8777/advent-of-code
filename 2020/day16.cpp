@@ -366,10 +366,12 @@ TEST_CASE("day16") {
                        std::istream_iterator<Field>{});
   }();
 
-  auto const mine = [&] {
-    std::istringstream is{mine_in};
-    return std::vector(std::istream_iterator<Ticket>{is},
-                       std::istream_iterator<Ticket>{});
+  auto const my_ticket = [&] {
+      std::istringstream is{mine_in};
+
+      Ticket t;
+      is >> t;
+      return t;
   }();
 
   auto const nearby = [&] {
@@ -426,14 +428,6 @@ TEST_CASE("day16") {
 
       potential_fields.push_back(potential);
     }
-
-    auto const my_ticket = [&] {
-      std::istringstream is{mine_in};
-
-      Ticket t;
-      is >> t;
-      return t;
-    }();
 
     auto const maybe = find_fields(potential_fields);
 
