@@ -144,8 +144,8 @@ TEST_CASE("day17") {
     return arena;
   }();
 
+#if 0
   auto const a = simulate_3d(arena);
   auto const b = simulate_4d(arena);
-
-  std::cout << a << ' ' << b << '\n';
+#endif
 }
