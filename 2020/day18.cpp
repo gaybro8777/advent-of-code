@@ -556,6 +556,4 @@ TEST_CASE("day18") {
         auto const reparenthised = reparenthise(tokens);
         return acc + parse_simple(reparenthised).value;
       });
-
-  std::cout << a << ' ' << b << '\n';
 }
