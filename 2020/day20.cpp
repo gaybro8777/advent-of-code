@@ -2081,13 +2081,6 @@ bool position_matches(Contents const &image, Pos const &base) {
 
   return true;
 }
-
-std::ostream &operator<<(std::ostream &os, Contents const &c) {
-  for (auto const &line : c)
-    os << line << '\n';
-
-  return os;
-}
 } // namespace
 
 TEST_CASE("day20") {
