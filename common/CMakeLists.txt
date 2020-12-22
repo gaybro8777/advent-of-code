@@ -1,3 +1,4 @@
-add_library(aoc INTERFACE)
-target_compile_features(aoc INTERFACE cxx_std_17)
-target_include_directories(aoc INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+add_library(aoc OBJECT)
+target_sources(aoc PRIVATE aoc_intcode.cpp)
+target_compile_features(aoc PUBLIC cxx_std_20)
+target_include_directories(aoc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

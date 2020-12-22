@@ -1,3 +1,6 @@
+#include "aoc_coord.hpp"
+#include "aoc_direction2d.hpp"
+
 #include <catch2/catch.hpp>
 
 #include <charconv>
@@ -1879,34 +1882,17 @@ std::istream &operator>>(std::istream &is, Tile &tile) {
   return is;
 }
 
-enum class Edge { top, bottom, left, right };
-
-Edge opposite(Edge e) {
-  switch (e) {
-  case Edge::top:
-    return Edge::bottom;
-  case Edge::bottom:
-    return Edge::top;
-  case Edge::left:
-    return Edge::right;
-  case Edge::right:
-    return Edge::left;
-  }
-
-  return {};
-}
-
-std::string get_edge(Contents const &t, Edge e) {
-  if (e == Edge::top)
+std::string get_edge(Contents const &t, aoc::Direction2d e) {
+  if (e == aoc::Direction2d::up)
     return t.front();
 
-  if (e == Edge::bottom)
+  if (e == aoc::Direction2d::down)
     return t.back();
 
   std::string result;
 
   for (auto const &str : t)
-    result.push_back(e == Edge::left ? str.front() : str.back());
+    result.push_back(e == aoc::Direction2d::left ? str.front() : str.back());
 
   return result;
 }
@@ -1914,7 +1900,7 @@ std::string get_edge(Contents const &t, Edge e) {
 Contents get_edges(Contents const &t) {
   Contents result;
 
-  for (auto const &e : {Edge::top, Edge::bottom, Edge::left, Edge::right}) {
+  for (auto const &e : aoc::directions2d) {
     auto str = get_edge(t, e);
     result.emplace_back(str.rbegin(), str.rend());
     result.emplace_back(std::move(str));
@@ -1931,18 +1917,12 @@ bool is_corner_tile(Tile const &tile,
          }) > 2;
 }
 
-struct Pos {
-  int x{}, y{};
-};
-
-auto tie(Pos const &p) { return std::tie(p.x, p.y); }
-bool operator<(Pos const &a, Pos const &b) { return tie(a) < tie(b); }
-
-auto get_surrounding(Pos const &p) {
-  return std::array{std::tuple{Pos{p.x - 1, p.y}, Edge::right},
-                    std::tuple{Pos{p.x + 1, p.y}, Edge::left},
-                    std::tuple{Pos{p.x, p.y - 1}, Edge::bottom},
-                    std::tuple{Pos{p.x, p.y + 1}, Edge::top}};
+auto get_surrounding(aoc::Coord const &p) {
+  return std::array{
+      std::tuple{aoc::Coord{p.x - 1, p.y}, aoc::Direction2d::right},
+      std::tuple{aoc::Coord{p.x + 1, p.y}, aoc::Direction2d::left},
+      std::tuple{aoc::Coord{p.x, p.y - 1}, aoc::Direction2d::down},
+      std::tuple{aoc::Coord{p.x, p.y + 1}, aoc::Direction2d::up}};
 }
 
 Contents flip(Contents const &t) { return {t.rbegin(), t.rend()}; }
@@ -1983,10 +1963,10 @@ assemble_image(std::span<Tile const> tiles,
     return result;
   }();
 
-  std::map<Pos, Tile> layout;
-  std::queue<Pos> positions_to_fill;
+  std::map<aoc::Coord, Tile> layout;
+  std::queue<aoc::Coord> positions_to_fill;
 
-  auto const add_tile = [&](Pos pos, Tile const &t) {
+  auto const add_tile = [&](aoc::Coord pos, Tile const &t) {
     layout[pos] = t;
 
     for (auto const &[p, _] : get_surrounding(pos))
@@ -2063,7 +2043,7 @@ int64_t count_hashes(Contents const &c) {
       });
 }
 
-bool position_matches(Contents const &image, Pos const &base) {
+bool position_matches(Contents const &image, aoc::Coord const &base) {
   auto y = 0;
 
   for (auto &line : sea_monster) {

@@ -1,5 +1,5 @@
-#include "direction2d.hpp"
-#include "intcode.hpp"
+#include "aoc_direction2d.hpp"
+#include "aoc_intcode.hpp"
 
 #include <catch2/catch.hpp>
 

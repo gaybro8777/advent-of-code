@@ -1,6 +1,6 @@
 #pragma once
 
-#include "coord.hpp"
+#include "aoc_coord.hpp"
 
 #include <array>
 
@@ -8,8 +8,8 @@ namespace aoc {
 
 enum class Direction2d { up, right, down, left };
 
-constexpr auto directions2d = std::array{Direction2d::up, Direction2d::right,
-                                         Direction2d::down, Direction2d::left};
+constexpr std::array directions2d{Direction2d::up, Direction2d::right,
+                                  Direction2d::down, Direction2d::left};
 
 constexpr auto toCoord(Direction2d d) -> aoc::Coord {
   switch (d) {
@@ -39,6 +39,21 @@ constexpr auto toChar(Direction2d d) {
   }
 
   return ' ';
+}
+
+constexpr auto opposite(Direction2d e) -> Direction2d {
+  switch (e) {
+  case Direction2d::up:
+    return Direction2d::down;
+  case Direction2d::down:
+    return Direction2d::up;
+  case Direction2d::left:
+    return Direction2d::right;
+  case Direction2d::right:
+    return Direction2d::left;
+  }
+
+  return {};
 }
 
 inline auto operator<<(std::ostream &os, Direction2d d) -> auto & {

@@ -1,4 +1,4 @@
-#include "intcode.hpp"
+#include "aoc_intcode.hpp"
 
 namespace aoc {
 

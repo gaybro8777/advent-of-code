@@ -1,5 +1,5 @@
-#include "coord.hpp"
-#include "intcode.hpp"
+#include "aoc_coord.hpp"
+#include "aoc_intcode.hpp"
 
 #include <catch2/catch.hpp>
 

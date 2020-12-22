@@ -1,3 +1,5 @@
+#include "aoc_coord.hpp"
+
 #include <catch2/catch.hpp>
 
 #include <algorithm>
@@ -825,20 +827,16 @@ std::istream &operator>>(std::istream &is, Line &l) {
 
 enum class Direction { N, E, S, W };
 
-struct Point {
-  int x{}, y{};
-};
-
 struct Vec {
   int x{}, y{};
 };
 
 Vec operator*(Vec v, int a) { return {v.x * a, v.y * a}; }
 
-Point operator+(Point p, Vec v) { return {p.x + v.x, p.y + v.y}; }
+aoc::Coord operator+(aoc::Coord p, Vec v) { return {p.x + v.x, p.y + v.y}; }
 
 struct State {
-  Point pos;
+  aoc::Coord pos;
   Direction direction = Direction::E;
 };
 
@@ -884,7 +882,7 @@ State step(State s, Line l) {
 }
 
 struct State2 {
-  Point pos;
+  aoc::Coord pos;
   Vec waypoint{10, 1};
 };
 

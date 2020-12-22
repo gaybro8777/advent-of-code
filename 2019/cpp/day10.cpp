@@ -1,4 +1,4 @@
-#include "coord.hpp"
+#include "aoc_coord.hpp"
 
 #include <catch2/catch.hpp>
 

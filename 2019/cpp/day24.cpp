@@ -1,4 +1,4 @@
-#include "direction2d.hpp"
+#include "aoc_direction2d.hpp"
 
 #include <catch2/catch.hpp>
 

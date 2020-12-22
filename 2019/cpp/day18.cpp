@@ -1,6 +1,6 @@
-#include "coord.hpp"
-#include "direction2d.hpp"
-#include "scopeguard.hpp"
+#include "aoc_coord.hpp"
+#include "aoc_direction2d.hpp"
+#include "aoc_scopeguard.hpp"
 
 #include <catch2/catch.hpp>
 

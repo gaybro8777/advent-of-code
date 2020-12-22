@@ -1,3 +1,5 @@
+#include "aoc_overloaded.hpp"
+
 #include <catch2/catch.hpp>
 
 #include <iostream>
@@ -566,9 +568,6 @@ std::istream &operator>>(std::istream &is, Rule &rule) {
   return is;
 }
 
-template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
-template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;
-
 std::string build_regex(std::map<int, Rule> const &rules, int index);
 
 std::string build_regex(std::map<int, Rule> const &rules,
@@ -587,7 +586,7 @@ std::string build_regex(std::map<int, Rule> const &rules, int index) {
   if (rule == rules.cend())
     return {};
 
-  return std::visit(Overloaded{
+  return std::visit(aoc::Overloaded{
                         [&](SequenceRule const &rule) {
                           return build_regex(rules, rule.sequence);
                         },

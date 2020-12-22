@@ -1,3 +1,5 @@
+#include "aoc_overloaded.hpp"
+
 #include <catch2/catch.hpp>
 
 #include <algorithm>
@@ -454,15 +456,12 @@ std::vector<Token> tokenise(std::string_view line) {
   return result;
 }
 
-template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
-template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;
-
 ParseResult parse_simple(std::span<Token const> line) {
   int64_t result{};
   std::function<void(int64_t)> accumulate = [&](auto in) { result += in; };
 
   for (size_t pos = 0; pos < line.size();) {
-    if (!std::visit(Overloaded{
+    if (!std::visit(aoc::Overloaded{
                         [&](Add) {
                           accumulate = [&](auto in) { result += in; };
                           pos += 1;
@@ -502,7 +501,7 @@ std::vector<Token> reparenthise(std::span<Token const> tokens) {
   result.push_back(Open{});
 
   for (auto const &token : tokens) {
-    std::visit(Overloaded{
+    std::visit(aoc::Overloaded{
                    [&](Add) {
                      result.push_back(Close{});
                      result.push_back(Add{});
