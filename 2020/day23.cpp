@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace {
-auto play(std::vector<int> &input, int min, int max) {
+auto play(std::vector<int64_t> &input, int64_t min, int64_t max) {
   std::vector const removed(input.cbegin() + 1, input.cbegin() + 4);
   input.erase(input.cbegin() + 1, input.cbegin() + 4);
 
@@ -31,7 +31,7 @@ auto play(std::vector<int> &input, int min, int max) {
   input.erase(input.cbegin());
 }
 
-auto play(std::vector<int> copy, int steps) {
+auto play(std::vector<int64_t> copy, int64_t steps) {
   auto const min = *std::min_element(copy.cbegin(), copy.cend());
   auto const max = *std::max_element(copy.cbegin(), copy.cend());
 
@@ -43,7 +43,7 @@ auto play(std::vector<int> copy, int steps) {
   copy.erase(copy.cbegin(), start + 1);
   copy.insert(copy.cend(), removed.cbegin(), removed.cend());
 
-  int i = 0;
+  int64_t i = 0;
 
   for (auto const c : copy) {
     i *= 10;
@@ -55,16 +55,63 @@ auto play(std::vector<int> copy, int steps) {
 } // namespace
 
 TEST_CASE("day23") {
-  std::vector const input{1, 9, 3, 4, 6, 7, 2, 5, 8};
+#if 1
+  std::vector<int64_t> const input{1, 9, 3, 4, 6, 7, 2, 5, 8};
+#else
+  std::vector<int64_t> const input{3, 8, 9, 1, 2, 5, 4, 6, 7};
+#endif
 
-  auto const a = play(input, 100);
+  auto const a = play(input, int64_t{100});
 
   auto const b = [&] {
-    auto copy = input;
-    copy.resize(1'000'000);
-    std::iota(copy.begin() + input.size(), copy.end(), input.size() + 1);
-    return play(copy, 10'000'000);
-  }();
+    auto const min = 1;
+    auto const max = 1'000'000;
 
-  std::cout << a << ' ' << b << '\n';
+    auto copy = input;
+    copy.push_back(copy.size() + 1);
+
+    std::map<int64_t, int64_t> entries;
+
+    for (auto i = 0; i != max; ++i)
+      entries[i + 1] = i + 2;
+
+    for (auto i = 0; i != copy.size() - 1; ++i)
+      entries[copy[i]] = copy[i + 1];
+
+    entries[max] = copy.front();
+
+    auto current_cup = copy.front();
+
+    std::vector<int64_t> removed;
+
+    for (auto i = 0; i != 10'000'000; ++i, current_cup = entries[current_cup]) {
+      removed.clear();
+      auto next = current_cup;
+
+      for (auto ind = 0; ind != 3; ++ind) {
+        next = entries[next];
+        removed.push_back(next);
+      }
+
+      entries[current_cup] = entries[removed.back()];
+
+      for (auto dest = current_cup - 1;; --dest) {
+        if (dest < min)
+          dest = max;
+
+        if (std::find(removed.cbegin(), removed.cend(), dest) ==
+            removed.cend()) {
+          auto const prev = entries[dest];
+          entries[dest] = removed.front();
+          entries[removed.back()] = prev;
+          break;
+        }
+      }
+    }
+
+    auto const u = entries[1];
+    auto const v = entries[u];
+
+    return u * v;
+  }();
 }
