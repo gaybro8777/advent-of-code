@@ -70,7 +70,8 @@ TEST_CASE("day23") {
     auto copy = input;
     copy.push_back(copy.size() + 1);
 
-    std::map<int64_t, int64_t> entries;
+    std::vector<int64_t> entries;
+    entries.resize(max + 1, 0);
 
     for (auto i = 0; i != max; ++i)
       entries[i + 1] = i + 2;
