@@ -85,6 +85,7 @@ State play_game(State state) {
 } // namespace
 
 TEST_CASE("day22") {
+#if 0
   auto const a = [&] {
     State state{std::vector(in_player_1.cbegin(), in_player_1.cend()),
                 std::vector(in_player_2.cbegin(), in_player_2.cend())};
@@ -103,4 +104,5 @@ TEST_CASE("day22") {
   auto const b = get_score(
       play_game(State{std::vector(in_player_1.cbegin(), in_player_1.cend()),
                       std::vector(in_player_2.cbegin(), in_player_2.cend())}));
+#endif
 }
