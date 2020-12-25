@@ -61,6 +61,7 @@ TEST_CASE("day23") {
   std::vector<int64_t> const input{3, 8, 9, 1, 2, 5, 4, 6, 7};
 #endif
 
+#if 0
   auto const a = play(input, int64_t{100});
 
   auto const b = [&] {
@@ -115,4 +116,5 @@ TEST_CASE("day23") {
 
     return u * v;
   }();
+#endif
 }

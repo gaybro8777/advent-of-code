@@ -715,6 +715,7 @@ TEST_CASE("day24") {
 
   auto const initial = get_initial_state(lines);
 
+#if 0
   auto const a = initial.size();
 
   auto const b = [&] {
@@ -725,4 +726,5 @@ TEST_CASE("day24") {
 
     return copy.size();
   }();
+#endif
 }
